@@ -2,7 +2,7 @@ use Test;
 
 plan 5;
 
-# https://github.com/Raku/old-issue-tracker/issues/5258
+
 
 {
     dies-ok { my $a = "a" x 2**30; my $b = "b" x 2**30; my $c = $a ~ $b; my $d = $b ~ $a; my $e = $c ~ $d; },
@@ -11,7 +11,7 @@ plan 5;
         'repeating strings with `x` that would create a too large result dies';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/5279
+
 if $*VM.name eq 'jvm' {
     skip-rest 'OutOfMemoryError: Java heap space';
 }

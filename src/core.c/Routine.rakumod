@@ -79,58 +79,8 @@ my class Routine { # declared in BOOTSTRAP
 
     method is-wrapped(--> False) { }
 
-#?if !moar
-    method wrap(&wrapper) {
-        my class WrapHandle {
-            has $!dispatcher;
-            has $!wrapper;
-            method restore() {
-                nqp::hllbool($!dispatcher.remove($!wrapper));
-            }
-        }
-        my role Wrapped {
-            has $!dispatcher;
-            method UNSHIFT_WRAPPER(&wrapper) {
-                # Add candidate.
-                $!dispatcher := WrapDispatcher.new()
-                    unless nqp::isconcrete($!dispatcher);
-                $!dispatcher.add(&wrapper);
 
-                # Return a handle.
-                my $handle := nqp::create(WrapHandle);
-                nqp::bindattr($handle, WrapHandle, '$!dispatcher', $!dispatcher);
-                nqp::bindattr($handle, WrapHandle, '$!wrapper', &wrapper);
-                $handle
-            }
-            method CALL-ME(|c) is raw {
-                $!dispatcher.enter(|c);
-            }
-            method WRAPPERS() { IterationBuffer.new($!dispatcher.candidates) }
-            method soft(--> True) { }
-            method is-wrapped(--> Bool) { $!dispatcher.candidates > 1 }
-        }
 
-        # We can't wrap a hardened routine (that is, one that's been
-        # marked inlinable).
-        if nqp::istype(self, HardRoutine) {
-            die "Cannot wrap a HardRoutine, since it may have been inlined; " ~
-                "use the 'soft' pragma to avoid marking routines as hard.";
-        }
-
-        # If we're not wrapped already, do the initial dispatcher
-        # creation.
-        unless nqp::istype(self, Wrapped) {
-            my $orig = self.clone();
-            self does Wrapped;
-            self.UNSHIFT_WRAPPER($orig);
-        }
-
-        # Add this wrapper.
-        self.UNSHIFT_WRAPPER(&wrapper);
-    }
-#?endif
-
-#?if moar
     my role Wrapped {
         has Mu      $!wrappers;
         has Routine $!wrapper-type;
@@ -195,7 +145,7 @@ my class Routine { # declared in BOOTSTRAP
         nqp::bindattr($handle, WrapHandle, '$!wrapper', &wrapper);
         $handle
     }
-#?endif
+
 
     method unwrap($handle) {
         X::Routine::Unwrap.new.throw

@@ -5,7 +5,7 @@ use nqp;
 
 plan 1;
 
-# https://github.com/rakudo/rakudo/issues/1526
+
 qast-is ｢(* + * + *)(1, 2, 3)｣, :target<ast>, -> \v {
       my $seen = 0;
       sub rake-it ($qast) {

@@ -9,7 +9,7 @@ class Distro does Systemic {
     has Str $.path-sep is built(:bind);
 
     submethod TWEAK (--> Nil) {
-        # https://github.com/rakudo/rakudo/issues/3436
+        
         nqp::bind($!name,$!name.lc.trans(" " => ""));  # lowercase spaceless
         $!is-win := so $!name eq any <mswin32 mingw msys cygwin>;
     }
@@ -20,18 +20,12 @@ class Distro does Systemic {
 
 # set up $*DISTRO
 Rakudo::Internals.REGISTER-DYNAMIC: '$*DISTRO', {
-#?if jvm
-    my $properties := VM.new.properties;
-    my $name       := $properties<os.name>;
-    my $version    := $properties<os.version>;
-    my $path-sep   := $properties<path.separator>;
-#?endif
-#?if !jvm
+
     my $config   := VM.new.config;
     my $name     := $config<osname>;
     my $version  := $config<osvers>;
     my $path-sep := $name eq 'MSWin32' ?? ';' !! ':';
-#?endif
+
     my Str $release := "unknown";
     my Str $auth    := "unknown";
     my Str $desc    := "unknown";
@@ -66,12 +60,9 @@ Rakudo::Internals.REGISTER-DYNAMIC: '$*DISTRO', {
         $release := $_ with $lookup<BuildVersion>;
         $auth    := 'Apple Inc.'; # presumably
 
-#?if !js
+
         my constant $names = nqp::hash(
-#?endif
-#?if js
-        my $names := nqp::hash(
-#?endif
+
           '10.0',  'Cheetah',
           '10.1',  'Puma',
           '10.2',  'Jaguar',

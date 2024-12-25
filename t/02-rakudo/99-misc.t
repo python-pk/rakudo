@@ -20,7 +20,7 @@ subtest 'IO::Handle.raku.EVAL roundtrips' => {
 
 # https://github.com/MoarVM/MoarVM/issues/971
 if $*DISTRO.is-win {
-    # https://github.com/Raku/old-issue-tracker/issues/6591
+    
     skip 'code too complex for Win32';
 }
 else {
@@ -40,7 +40,7 @@ else {
     'profiler does not crash';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/6661
+
 # XXX TODO 6.d REVIEW. Setting traits from multiple multies is undefined
 # and this test may need to be moved to rakudo's test suite.
 eval-lives-ok ｢
@@ -49,14 +49,14 @@ eval-lives-ok ｢
     multi infix:<↑↑> is assoc<right> is tighter(&infix:<↑>) { [↑] $^n xx $^m }
 ｣, 'no crash when defining multiple routines with tightnes';
 
-# https://github.com/rakudo/rakudo/issues/1411
+
 -> Positional:D[Int] \z {
     is-deeply z.List, (1, 2, 3),
     'parametarization of a DefiniteHOW does not complain about complex coercers'
 }(Array[Int].new: 1, 2, 3);
 
-# https://github.com/rakudo/rakudo/issues/1315
-# https://github.com/rakudo/rakudo/issues/1477
+
+
 # The non-optimizing custom stuff might not be spec material:
 # https://irclogs.raku.org/perl6-dev/2018-02-07.html#03:13
 # and with extra comments on https://github.com/rakudo/rakudo/issues/1477#issuecomment-363644261
@@ -115,7 +115,7 @@ subtest 'postfix-to-prefix-inc-dec opt does not rewrite custom ops' => {
     }
 }
 
-{ # https://github.com/rakudo/rakudo/issues/1481
+{ 
     my @res;
     multi sub foo($x where /{@res.push: $x}./) {}
     multi sub foo($y where /{@res.push: $y}./) {}

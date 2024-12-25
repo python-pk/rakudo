@@ -46,7 +46,7 @@ else {
 
 
 {
-    # https://github.com/Raku/old-issue-tracker/issues/3783
+    
     eval-lives-ok q:to 'CODE', 'Signature matching with Pointer[int32] works';
         use NativeCall;
 
@@ -73,7 +73,7 @@ else {
         CODE
 }
 
-# https://github.com/rakudo/rakudo/issues/4483
+
 {
     is-deeply +Pointer, 0, 'Numerifying Pointer class works';
 }

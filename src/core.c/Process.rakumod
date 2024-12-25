@@ -30,17 +30,10 @@ Rakudo::Internals.REGISTER-DYNAMIC: '$*RAKUDO_MODULE_DEBUG', {
 Rakudo::Internals.REGISTER-DYNAMIC: '$*EXECUTABLE', {
     PROCESS::<$EXECUTABLE> := IO::Path.new(:CWD(INIT nqp::cwd()),
       nqp::execname()
-#?if jvm
-      || $*VM.properties<perl6.prefix> ~ '/bin/perl6-j'
-#?endif
-#?if moar
+
       || ($*VM.config<prefix> ~ '/bin/'
         ~ ($*VM.config<osname> eq 'MSWin32' ?? 'perl6-m.exe' !! 'perl6-m'))
-#?endif
-#?if js
-      // ($*VM.config<prefix> ~ '/bin/'
-        ~ ($*VM.config<osname> eq 'MSWin32' ?? 'perl6-js.bat' !! 'perl6-js'))
-#?endif
+
     );
 }
 

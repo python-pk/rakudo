@@ -26,9 +26,6 @@ class Perl6::Metamodel::ClassHOW
     does Perl6::Metamodel::Finalization
     does Perl6::Metamodel::Concretization
     does Perl6::Metamodel::ConcretizationCache
-#?if !moar
-    does Perl6::Metamodel::InvocationProtocol
-#?endif
 {
     has @!roles;
     has @!role_typecheck_list;
@@ -51,17 +48,11 @@ class Perl6::Metamodel::ClassHOW
     }
 
     method archetypes($target = nqp::null()) {
-#?if moar
+
         # The dispatcher itself is declared at the end of this file. We can't have it in the BOOTSTRAP because the
         # bootstrap process is using archetypes long before dispatchers from dispatchers.nqp gets registered.
         nqp::dispatch('raku-class-archetypes', self, $target)
-#?endif
-#?if !moar
-        if nqp::isconcrete(my $dcobj := nqp::decont($target)) && nqp::can($dcobj, 'is-generic') {
-            return $dcobj.is-generic ?? $archetypes-g !! $archetypes-ng;
-        }
-        $!archetypes // $archetypes-ng
-#?endif
+
     }
 
     method !refresh_archetypes($target) {
@@ -114,11 +105,6 @@ class Perl6::Metamodel::ClassHOW
     # calculate an invokable object.
     method add_fallback($target, $condition, $calculator) {
         self.protect({
-#?if !moar
-            # Adding a fallback means any method cache is no longer
-            # authoritative.
-            nqp::setmethcacheauth($target, 0);
-#?endif
 
             # Add it in a threadsafe manner
             my @fallbacks := nqp::clone(@!fallbacks);
@@ -164,12 +150,9 @@ class Perl6::Metamodel::ClassHOW
 
                 # If class is a result of pun then transfer hidden flag
                 # and language revision from the source role
-#?if !moar
-                if self.is_pun && nqp::eqaddr($!pun_source, $role) {
-#?endif
-#?if moar
+
                 if nqp::eqaddr($!pun_source, $role) {
-#?endif
+
                     self.set_hidden($target) if $ins.HOW.hidden($ins);
                     self.set_language_revision(
                       $target, $ins.HOW.language_revision, :force
@@ -318,10 +301,6 @@ class Perl6::Metamodel::ClassHOW
         # Compose the meta-methods.
         self.compose_meta_methods($target);
 
-#?if !moar
-        # Compose invocation protocol.
-        self.compose_invocation($target);
-#?endif
 
         self.'!refresh_archetypes'($target);
 
@@ -357,9 +336,6 @@ class Perl6::Metamodel::ClassHOW
     my $junction_type;
     my $junction_autothreader;
     method setup_junction_fallback($type, $autothreader) {
-#?if !moar
-        nqp::setmethcacheauth($type, 0);
-#?endif
         $junction_type         := $type;
         $junction_autothreader := $autothreader;
     }
@@ -463,7 +439,7 @@ class Perl6::Metamodel::ClassHOW
         );
     }
 
-#?if moar
+
     # Returns archetypes of a class or a class instance.
     # Dispatcher arguments: ClassHOW object, invocant object
     nqp::register('raku-class-archetypes', -> $capture {
@@ -519,7 +495,7 @@ class Perl6::Metamodel::ClassHOW
         }
     }
 );
-#?endif
+
 }
 
 # vim: expandtab sw=4

@@ -1508,9 +1508,9 @@ class Rakudo::Iterator {
         has Mu  $!CWD;       # IO::Path object for $*CWD when testing
         has Mu  $!tester;    # object to call .ACCEPTS on to accept entry
         has Mu  $!dirhandle; # low level directory handle
-#?if !js
+
         has $!dots;  # Moar & JVM don't produce "." and "..", so we need to fake them
-#?endif
+
 
         method !SET-SELF(\path, Mu \tester) {
             $!path      := path;
@@ -1518,9 +1518,9 @@ class Rakudo::Iterator {
             $!CWD       := path.CWD.IO;
             $!tester    := tester;
             $!dirhandle := nqp::opendir(path.absolute);
-#?if !js
+
             $!dots   := nqp::list_s(".","..");
-#?endif
+
 
             self
         }
@@ -1532,16 +1532,13 @@ class Rakudo::Iterator {
             my $*CWD := $!CWD;
 
             nqp::while(
-#?if !js
+
               ($entry = nqp::if(
                 nqp::elems($!dots),
                 nqp::shift_s($!dots),
                 nqp::nextfiledir($!dirhandle)
               )),
-#?endif
-#?if js
-              ($entry = nqp::nextfiledir($!dirhandle)),
-#?endif
+
               nqp::if(
                 $!tester.ACCEPTS($entry),
                 return nqp::clone(
@@ -1555,9 +1552,9 @@ class Rakudo::Iterator {
         }
 
         method push-all(\target --> IterationEnd) {
-#?if !js
+
             my $dots      := $!dots;
-#?endif
+
             my $path      := $!path;
             my str $prefix = $!prefix;
             my $tester    := $!tester;
@@ -1566,16 +1563,13 @@ class Rakudo::Iterator {
 
             my $*CWD := $!CWD;
             nqp::while(
-#?if !js
+
               ($entry = nqp::if(
                 nqp::elems($dots),
                 nqp::shift_s($dots),
                 nqp::nextfiledir($dirhandle)
               )),
-#?endif
-#?if js
-              ($entry = nqp::nextfiledir($dirhandle)),
-#?endif
+
               nqp::if(
                 $tester.ACCEPTS($entry),
                 target.push: nqp::clone(
@@ -1601,27 +1595,10 @@ class Rakudo::Iterator {
             $!path  := path;
             $!prefix = path.prefix-for-dir;
 
-#?if js
-            my $dirhandle := nqp::opendir(path.absolute);
-            # skipping . and .. worked, JVM never produces them
-            if nqp::iseq_s(nqp::nextfiledir($dirhandle),'.')
-              && nqp::iseq_s(nqp::nextfiledir($dirhandle),'..') {
-                $!dirhandle  := $dirhandle;
-                self
-            }
 
-            # strange, no '.' or '..' at start, run with tester
-            else {
-                DirTest.new(
-                  path,
-                  -> str $d { nqp::isne_s($d,'.') && nqp::isne_s($d,'..') },
-                )
-            }
-#?endif
-#?if !js
             $!dirhandle := nqp::opendir(path.absolute);
             self
-#?endif
+
         }
 
         method new(\path) { nqp::create(self)!SET-SELF(path) }
@@ -1884,12 +1861,9 @@ class Rakudo::Iterator {
     method Flat(\iterator, $levels, $decont) {
         Flat.new(
           iterator,
-#?if !jvm
+
           nqp::istype($levels,Whatever) || $levels == Inf ?? -1 !! $levels.Int,
-#?endif
-#?if jvm
-          nqp::istype($levels,Whatever) || $levels == Inf ?? int.Range.max !! $levels.Int,
-#?endif
+
           $decont.Int
         )
     }

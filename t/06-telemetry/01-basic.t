@@ -88,7 +88,7 @@ is +@report, 2, 'did we only get the header of the report';
 ok @report[0].starts-with('Telemetry Report of Process'), 'line 1 of report';
 is @report[1], 'Number of Snapshots: 0', 'line 2 of report';
 
-{ # https://github.com/rakudo/rakudo/issues/1714
+{ 
     (temp %*ENV)<RAKUDO_REPORT_COLUMNS> = 'blahblah';
     is-run ｢
       use snapper;

@@ -12,12 +12,6 @@ BEGIN {
     Perl6::Metamodel::ParametricRoleHOW.HOW.reparent(Perl6::Metamodel::ParametricRoleHOW, Any);
     Perl6::Metamodel::SubsetHOW.HOW.reparent(Perl6::Metamodel::SubsetHOW, Any);
     Perl6::Metamodel::GrammarHOW.HOW.compose(Perl6::Metamodel::GrammarHOW);
-#?if !moar
-    Perl6::Metamodel::BaseDispatcher.HOW.reparent(Perl6::Metamodel::BaseDispatcher, Any);
-    Perl6::Metamodel::MethodDispatcher.HOW.compose(Perl6::Metamodel::MethodDispatcher);
-    Perl6::Metamodel::MultiDispatcher.HOW.compose(Perl6::Metamodel::MultiDispatcher);
-    Perl6::Metamodel::WrapDispatcher.HOW.compose(Perl6::Metamodel::WrapDispatcher);
-#?endif
 }
 
 my constant CORE-SETTING-REV = do {
@@ -97,7 +91,7 @@ BEGIN {
 # Required for use in the optimizer
 nqp::bindhllsym('Raku', 'Mu:U', Mu:U);
 
-#?if moar
+
 # Cannot be added in the Uni class, as we don't have native arrays
 # then yet, so it must be done here as an augment.
 augment class Uni {
@@ -119,7 +113,7 @@ augment class Uni {
         $uni
     }
 }
-#?endif
+
 
 # This cannot live in Rakudo::Internals proper because allomorphs are
 # not yet known at that stage

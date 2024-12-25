@@ -326,7 +326,7 @@ and, by default, also executes the compiled code.
                        extra output.
                        Both 'process' and 'disabled' options bypass
                        TTY detection.
-#?if moar
+
   --profile[=name]     write profile information to a file
                        Extension controls format:
                            .json outputs in JSON
@@ -359,7 +359,7 @@ and, by default, also executes the compiled code.
   --debug-suspend      pause execution at the entry point
   --tracing            output a line to stderr on every interpreter instr
                        (only if enabled in MoarVM)
-#?endif
+
 Note that only boolean single-letter options may be bundled.
 
 The following environment variables are respected:

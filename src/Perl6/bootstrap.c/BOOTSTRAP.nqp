@@ -1741,49 +1741,6 @@ class ContainerDescriptor::UninitializedAttribute {
     method is_default_generic() { self.next.is_default_generic }
 }
 
-#?if !moar
-#- UninitializedAttributeChecker -----------------------------------------------
-# On MoarVM we have a dispatcher for checking if an attribute is not
-# initialized, this is the portable fallback for other VMs.
-my class UninitializedAttributeChecker {
-    method check($attr) {
-        # If there's a non-concrete object observed, then we bound a non-container
-        # in place, so trivially initialized.
-        if !nqp::isconcrete_nd($attr) {
-            1
-        }
-
-        # Otherwise, might be a container that was assigned. Look for the
-        # descriptor.
-        else {
-            my $desc;
-            if nqp::istype_nd($attr, Scalar) {
-                $desc := nqp::getattr($attr, Scalar, '$!descriptor');
-            }
-            elsif nqp::istype_nd($attr, Array) {
-                my $storage := nqp::getattr($attr, List, '$!reified');
-                unless nqp::isconcrete($storage) && nqp::elems($storage) {
-                    $desc := nqp::getattr($attr, Array, '$!descriptor');
-                }
-            }
-            elsif nqp::istype_nd($attr, Hash) {
-                my $storage := nqp::getattr($attr, Map, '$!storage');
-                unless nqp::isconcrete($storage) && nqp::elems($storage) {
-                    $desc := nqp::getattr($attr, Hash, '$!descriptor');
-                }
-            }
-            else {
-                try {
-                    my $base := nqp::how_nd($attr).mixin_base($attr);
-                    $desc := nqp::getattr($attr, $base, '$!descriptor');
-                }
-            }
-            !nqp::eqaddr($desc.WHAT, ContainerDescriptor::UninitializedAttribute);
-        }
-    }
-}
-nqp::bindhllsym('Raku', 'UninitializedAttributeChecker', UninitializedAttributeChecker);
-#?endif
 
 # We stick all the declarative bits inside of a BEGIN, so they get
 # serialized.
@@ -1791,7 +1748,7 @@ BEGIN {
     # Ensure Rakudo runtime support is initialized.
     nqp::p6init();
 
-#?if moar
+
     # On MoarVM, to get us through the bootstrap, put the NQP dispatchers in
     # place as the Raku ones; they will get replaced later in the bootstrap.
     nqp::sethllconfig('Raku', nqp::hash(
@@ -1799,7 +1756,7 @@ BEGIN {
       'method_call_dispatcher', 'nqp-meth-call',
       'find_method_dispatcher', 'nqp-find-meth',
     ));
-#?endif
+
 
 #- Mu --------------------------------------------------------------------------
 # class Mu {
@@ -2330,12 +2287,9 @@ BEGIN {
                     if nqp::eqaddr($type, Mu) || nqp::istype($val, $type) {
                         if $type.HOW.archetypes($type).coercive {
                             my $coercion_type := $type.HOW.wrappee($type, :coercion);
-#?if moar
+
                             nqp::bindattr($cont, Scalar, '$!value', nqp::dispatch('raku-coercion', $coercion_type, $val));
-#?endif
-#?if !moar
-                            nqp::bindattr($cont, Scalar, '$!value', $coercion_type.HOW.coerce($coercion_type, $val));
-#?endif
+
                         }
                         else {
                             nqp::bindattr($cont, Scalar, '$!value', $val);
@@ -3004,12 +2958,6 @@ BEGIN {
 
     Code.HOW.compose_repr(Code);
 
-#?if !moar
-    # Need to actually run the code block. Also need this available before
-    # we finish up the stub.
-    Code.HOW.set_invocation_attr(Code, Code, '$!do');
-    Code.HOW.compose_invocation(Code);
-#?endif
 
 #- Block -----------------------------------------------------------------------
 # class Block is Code {
@@ -3144,9 +3092,6 @@ BEGIN {
     }));
 
     Block.HOW.compose_repr(Block);
-#?if !moar
-    Block.HOW.compose_invocation(Block);
-#?endif
 
 #- Routine ---------------------------------------------------------------------
 # class Routine is Block {
@@ -3197,11 +3142,6 @@ BEGIN {
       '@!dispatch_order', List, Routine
     ));
 
-#?if !moar
-    Routine.HOW.add_attribute(Routine, Attribute.new(
-      :name<$!dispatch_cache>, :type(Mu), :package(Routine)
-    ));
-#?endif
 
     Routine.HOW.add_method(Routine, 'is_generic',
       nqp::getstaticcode(sub ($self) {
@@ -3258,9 +3198,6 @@ BEGIN {
 
         nqp::scwbdisable;
         nqp::bindattr($self, Routine, '@!dispatch_order', nqp::null);
-#?if !moar
-        nqp::bindattr($self, Routine, '$!dispatch_cache', nqp::null);
-#?endif
         nqp::scwbenable;
 
         $self
@@ -3827,54 +3764,6 @@ BEGIN {
         }
     }));
 
-#?if !moar
-    Routine.HOW.add_method(Routine, '!filter-revision-gated-candidates',
-      nqp::getstaticcode(sub ($self, $caller-revision, @candidates) {
-        $self := nqp::decont($self);
-
-        my int $idx := 0;
-        my int $allowed-idx := 0;
-        my @allowed-candidates;
-        my %gated-candidates;
-        while $idx < nqp::elems(@candidates) {
-          my $candidate := nqp::atpos(@candidates, $idx++);
-
-          unless nqp::isconcrete($candidate) {
-            nqp::push(@allowed-candidates, $candidate);
-            $allowed-idx++;
-            next;
-          }
-
-          my $required-revision := nqp::atkey($candidate, 'required_revision');
-          my $is-revision-specified := nqp::isconcrete($required-revision);
-          if !$is-revision-specified || $required-revision <= $caller-revision  {
-            if (nqp::existskey($candidate, 'signature')) && $is-revision-specified {
-              my $signature := nqp::atkey($candidate, 'signature').raku;
-              if nqp::existskey(%gated-candidates, $signature) {
-                my $candidate-idx := nqp::atkey(%gated-candidates, $signature);
-                my $last-seen-revision := nqp::atkey(
-                        nqp::atpos(@allowed-candidates, $candidate-idx),
-                        'required_revision'
-                                                                                      );
-
-                if $last-seen-revision < $required-revision {
-                  nqp::bindkey(%gated-candidates, $signature, $candidate-idx);
-                  nqp::bindpos(@allowed-candidates, $candidate-idx, $candidate);
-                  # Do *not* bump $allowed-idx here
-                }
-              } else {
-                nqp::push(@allowed-candidates, $candidate);
-                nqp::bindkey(%gated-candidates, $signature, $allowed-idx++);
-              }
-            } else {
-              nqp::push(@allowed-candidates, $candidate);
-              $allowed-idx++;
-            }
-          }
-        }
-        @allowed-candidates
-    }));
-#?endif
 
     Routine.HOW.add_method(Routine, 'dispatch_order',
       nqp::getstaticcode(sub ($self) {
@@ -3890,12 +3779,6 @@ BEGIN {
         }
 
 
-#?if !moar
-        my $caller-revision := nqp::getcomp('Raku').language_revision;
-        if nqp::can($self, 'REQUIRED-REVISION') && $self.REQUIRED-REVISION <= $caller-revision {
-          $dispatch_order := $self.'!filter-revision-gated-candidates'($caller-revision, $dispatch_order)
-        }
-#?endif
 
         $dispatch_order
     }));
@@ -4343,22 +4226,6 @@ BEGIN {
             }
         }
 
-#?if !moar
-        # If we're at a single candidate here, and we also know there's no
-        # type constraints that follow, we can cache the result.
-        sub add_to_cache($entry) {
-            return 0 if nqp::capturehasnameds($capture);
-            nqp::scwbdisable();
-            nqp::bindattr($self, Routine, '$!dispatch_cache',
-                nqp::multicacheadd(
-                    nqp::getattr($self, Routine, '$!dispatch_cache'),
-                    $capture, $entry));
-            nqp::scwbenable();
-        }
-        if nqp::elems(@possibles) == 1 && $pure_type_result {
-            add_to_cache(nqp::atkey(nqp::atpos(@possibles, 0), 'sub'));
-        }
-#?endif
 
         # Found nothing but have junctional arguments?
         unless nqp::elems(@possibles) {
@@ -4370,9 +4237,6 @@ BEGIN {
                         my $junctional_res := -> *@pos, *%named {
                             Junction.AUTOTHREAD($self, |@pos, |%named)
                         }
-#?if !moar
-                        add_to_cache($junctional_res);
-#?endif
                         # We're done: it's a Junction, deal with it!
                         return $junctional_res;
                     }
@@ -4530,23 +4394,13 @@ BEGIN {
                 nqp::push(@ambiguous, $_<sub>);
             }
             my str $name := $self.name;
-#?if !moar
-            sub assemble_capture(*@pos, *%named) {
-                my $c := nqp::create(Capture);
-                nqp::bindattr($c, Capture, '@!list', @pos);
-                nqp::bindattr($c, Capture, '%!hash', %named);
-                $c
-            }
-            my $raku_capture :=
-              nqp::invokewithcapture(&assemble_capture, $capture);
-#?endif
-#?if moar
+
             my $raku_capture := nqp::create(Capture);
             nqp::bindattr($raku_capture, Capture, '@!list',
               nqp::syscall('capture-pos-args', $capture));
             nqp::bindattr($raku_capture, Capture, '%!hash',
               nqp::syscall('capture-named-args', $capture));
-#?endif
+
 
             nqp::elems(@possibles)
               ?? Perl6::Metamodel::Configuration.throw_or_die(
@@ -4848,17 +4702,11 @@ BEGIN {
     }));
 
     Routine.HOW.compose_repr(Routine);
-#?if !moar
-    Routine.HOW.compose_invocation(Routine);
-#?endif
 
 #- Sub -------------------------------------------------------------------------
 # class Sub is Routine {
     Sub.HOW.add_parent(Sub, Routine);
     Sub.HOW.compose_repr(Sub);
-#?if !moar
-    Sub.HOW.compose_invocation(Sub);
-#?endif
 
 #- Operator --------------------------------------------------------------------
 # class Operator is Sub {
@@ -4870,27 +4718,18 @@ BEGIN {
     ));
 
     Operator.HOW.compose_repr(Operator);
-#?if !moar
-    Operator.HOW.compose_invocation(Operator);
-#?endif
 
 #- Method ----------------------------------------------------------------------
 # class Method is Routine {
     Method.HOW.add_parent(Method, Routine);
 
     Method.HOW.compose_repr(Method);
-#?if !moar
-    Method.HOW.compose_invocation(Method);
-#?endif
 
 #- Submethod -------------------------------------------------------------------
 # class Submethod is Routine {
     Submethod.HOW.add_parent(Submethod, Routine);
 
     Submethod.HOW.compose_repr(Submethod);
-#?if !moar
-    Submethod.HOW.compose_invocation(Submethod);
-#?endif
 
 #- Regex -----------------------------------------------------------------------
 # Capture store for SET_CAPS.
@@ -5142,9 +4981,6 @@ BEGIN {
     }));
 
     Regex.HOW.compose_repr(Regex);
-#?if !moar
-    Regex.HOW.compose_invocation(Regex);
-#?endif
 
 #- Str -------------------------------------------------------------------------
 # class Str is Cool {
@@ -5386,10 +5222,6 @@ BEGIN {
     ));
 
     ForeignCode.HOW.compose_repr(ForeignCode);
-#?if !moar
-    ForeignCode.HOW.set_invocation_attr(ForeignCode, ForeignCode, '$!do');
-    ForeignCode.HOW.compose_invocation(ForeignCode);
-#?endif
 
 #- Version ---------------------------------------------------------------------
 # class Version {
@@ -5498,50 +5330,6 @@ BEGIN {
     Perl6::Metamodel::ClassHOW.add_stash(ForeignCode);
     Perl6::Metamodel::ClassHOW.add_stash(Version);
 
-#?if !moar
-    # Default invocation behavior delegates off to invoke.
-    my $invoke_forwarder :=
-        nqp::getstaticcode(sub ($self, *@pos, *%named) {
-            if nqp::can($self, 'CALL-ME') {
-                $self.CALL-ME(|@pos, |%named)
-            }
-            else {
-                my $self_name := $self.HOW.name($self);
-                if !nqp::isconcrete($self) && +@pos {
-                    my $val;
-                    if +@pos == 1 {
-                        $val := @pos[0];
-                    }
-                    else {
-                        $val := nqp::create(List);
-                        nqp::bindattr($val, List, '$!reified', @pos);
-                    }
-                    Perl6::Metamodel::Configuration.throw_or_die(
-                        'X::Coerce::Impossible',
-                        "Cannot coerce to $self_name with named arguments",
-                        :target-type($self.WHAT), :from-type($val.WHAT), :hint("named arguments passed")
-                    ) if +%named;
-                    my $how := $self.HOW;
-                    my $coercion_type := Perl6::Metamodel::CoercionHOW.new_type(
-                        (nqp::istype($how, Perl6::Metamodel::ClassHOW) && $how.is_pun($self)
-                            ?? $self.HOW.pun_source($self)
-                            !! $self.WHAT),
-                        $val.WHAT);
-                    nqp::hllizefor($coercion_type.HOW.coerce($coercion_type, $val), "Raku");
-                }
-                else {
-                    Perl6::Metamodel::Configuration.throw_or_die(
-                        'X::Method::NotFound',
-                        "No such method 'CALL-ME' for invocant of type '$self_name'",
-                        :invocant($self), :method(nqp::hllizefor('CALL-ME', "Raku")),
-                        :typename(nqp::hllizefor($self_name, "Raku"))
-                    );
-                }
-            }
-        });
-    Mu.HOW.set_invocation_handler(Mu, $invoke_forwarder);
-    Mu.HOW.compose_invocation(Mu);
-#?endif
 
     # If we don't already have a PROCESS, set it up.
     my $PROCESS := nqp::gethllsym('Raku', 'PROCESS');
@@ -5645,10 +5433,6 @@ BEGIN {
 EXPORT::DEFAULT.WHO<NQPMatchRole> := NQPMatchRole;
 EXPORT::DEFAULT.WHO<NQPdidMATCH>  := NQPdidMATCH;
 
-#?if !moar
-# Set up various type mappings.
-nqp::p6settypes(EXPORT::DEFAULT.WHO);
-#?endif
 
 # HLL configuration: interop, boxing and exit handling.
 nqp::sethllconfig('Raku', nqp::hash(
@@ -5917,7 +5701,7 @@ nqp::sethllconfig('Raku', nqp::hash(
     'int64_multidim_ref', Int64MultidimRef,
 #?endif
 
-#?if moar
+
     'call_dispatcher',         'raku-call',
     'method_call_dispatcher',  'raku-meth-call',
     'find_method_dispatcher',  'raku-find-meth',
@@ -5927,10 +5711,10 @@ nqp::sethllconfig('Raku', nqp::hash(
     'istype_dispatcher',       'nqp-istype',
     'isinvokable_dispatcher',  'raku-isinvokable',
     'max_inline_size',         384,
-#?endif
+
 ));
 
-#?if moar
+
 my @types_for_hll_role := nqp::list(Mu, Int, Num, Str, List, Hash, ForeignCode);
 my @transform_type := nqp::list(
     Mu,
@@ -6020,23 +5804,16 @@ nqp::register('raku-hllize', -> $capture {
         }
     }
 });
-#?endif
+
 
 # Tell parametric role groups how to create a dispatcher.
 Perl6::Metamodel::ParametricRoleGroupHOW.set_selector_creator({
     my $sel := nqp::create(Sub);
-#?if moar
+
     my $onlystar := sub (*@pos, *%named) {
         nqp::dispatch('boot-resume', nqp::const::DISP_ONLYSTAR)
     };
-#?endif
-#?if !moar
-    my $onlystar := sub (*@pos, *%named) {
-        nqp::invokewithcapture(
-            nqp::getcodeobj(nqp::curcode()).find_best_dispatchee(nqp::usecapture()),
-            nqp::usecapture())
-    };
-#?endif
+
     nqp::setcodeobj($onlystar, $sel);
     nqp::bindattr($sel, Code, '$!do', $onlystar);
     nqp::bindattr($sel, Routine, '@!dispatchees', nqp::list);
@@ -6110,21 +5887,6 @@ Perl6::Metamodel::ModuleHOW.pretend_to_be(
 );
 Perl6::Metamodel::ModuleHOW.delegate_methods_to(Any);
 
-#?if !moar
-# Make roles handle invocations.
-my $role_invoke_handler := nqp::getstaticcode(sub ($self, *@pos, *%named) {
-    $self.HOW.pun($self)(|@pos, |%named)
-});
-Perl6::Metamodel::ParametricRoleGroupHOW.set_default_invoke_handler($role_invoke_handler);
-Perl6::Metamodel::ParametricRoleHOW.set_default_invoke_handler($role_invoke_handler);
-Perl6::Metamodel::CurriedRoleHOW.set_default_invoke_handler($role_invoke_handler);
-
-# Let ClassHOW and EnumHOW know about the invocation handler.
-Perl6::Metamodel::ClassHOW.set_default_invoke_handler(
-    Mu.HOW.invocation_handler(Mu));
-Perl6::Metamodel::EnumHOW.set_default_invoke_handler(
-    Mu.HOW.invocation_handler(Mu));
-#?endif
 
 # Configure the MOP (not persisted as it ends up in a lexical...)
 Perl6::Metamodel::Configuration.set_stash_type(Stash, Map);

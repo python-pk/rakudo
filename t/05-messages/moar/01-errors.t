@@ -5,7 +5,7 @@ $*VM.name eq 'moar' or plan :skip-all<These tests are only for MoarVM backend>;
 
 plan 1;
 
-# https://github.com/rakudo/rakudo/issues/1451
+
 subtest 'no SEGV with failed opens of MVM debug files' => {
     plan +my @vars := <
         MVM_SPESH_LOG  MVM_DYNVAR_LOG  MVM_COVERAGE_LOG

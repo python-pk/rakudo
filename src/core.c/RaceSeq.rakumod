@@ -2,7 +2,7 @@
 # in the order they are produced (so potentially disordering them relative to
 # the input).
 
-#?if !js
+
 my class RaceSeq does ParallelSequence[Rakudo::Internals::RaceToIterator] {
     method hyper(RaceSeq:D:) {
         HyperSeq.new(
@@ -13,10 +13,6 @@ my class RaceSeq does ParallelSequence[Rakudo::Internals::RaceToIterator] {
 
     method race(RaceSeq:D:) { self }
 }
-#?endif
-#?if js
-my class RaceSeq is Seq {
-}
-#?endif
+
 
 # vim: expandtab shiftwidth=4

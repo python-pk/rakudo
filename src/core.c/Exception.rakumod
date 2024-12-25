@@ -528,16 +528,6 @@ sub EXCEPTION(|) is implementation-detail {
         elsif $type == nqp::const::CONTROL_DONE {
             $ex := CX::Done.new();
         }
-#?if !moar
-        # for MoarVM this check is done in src/Perl6/Metamodel/BOOTSTRAP.nqp, cmp 222d16b0b9
-        elsif !nqp::isnull_s(nqp::getmessage($vm_ex)) &&
-                nqp::p6box_s(nqp::getmessage($vm_ex)) ~~ /"Method '" (.*?) "' not found for invocant of class '" (.+)\'$/ {
-            $ex := X::Method::NotFound.new(
-                method   => ~$0,
-                typename => ~$1,
-            );
-        }
-#?endif
         else {
             $ex := nqp::create(X::AdHoc);
             nqp::bindattr($ex, X::AdHoc, '$!payload', nqp::p6box_s(nqp::getmessage($vm_ex) // 'unknown exception'));
@@ -1110,12 +1100,9 @@ my class X::Worry::P5::LeadingZero is X::Worry::P5 {
         ('Leading 0 has no meaning. If you meant to create an octal number'
           ~ ", use '0o' prefix"
           ~ (
-#?if jvm
-              $.value ~~ /<[89]>/
-#?endif
-#?if !jvm
+
               $.value.comb.first(*.unival > 7)
-#?endif
+
                 ?? ", but note that $.value is not a valid octal number"
                 !! "; like, '0o$.value'"
             )
@@ -2055,12 +2042,9 @@ my class X::Syntax::ConditionalOperator::SecondPartInvalid does X::Syntax {
 my class X::Syntax::Perl5Var does X::Syntax {
     has $.name;
     has $.identifier-name;
-#?if !js
+
     my constant $m = nqp::hash(
-#?endif
-#?if js
-    my $m := nqp::hash(
-#?endif
+
       '$"',    '.join() method',
       '$$',    '$*PID',
       '$;',    'real multidimensional hashes',
@@ -3507,82 +3491,9 @@ my class X::Nominalizable::NoKind does X::Nominalizable {
     }
 }
 
-#?if !moar
-nqp::bindcurhllsym('P6EX', nqp::hash(
-  'X::TypeCheck::Binding',
-  -> Mu $got is raw, Mu $expected is raw, $symbol? is raw {
-      X::TypeCheck::Binding.new(:$got, :$expected, :$symbol).throw;
-  },
-  'X::TypeCheck::Binding::Parameter',
-  -> Mu $got is raw, Mu $expected is raw, $symbol is raw, $parameter is raw, $is-constraint? is raw {
-      my $constraint = $is-constraint ?? True !! False;
-      X::TypeCheck::Binding::Parameter.new(:$got, :$expected, :$symbol, :$parameter, :$constraint).throw;
-  },
-  'X::TypeCheck::Assignment',
-  -> Mu $symbol is raw, Mu $got is raw, Mu $expected is raw {
-      X::TypeCheck::Assignment.new(:$symbol, :$got, :$expected).throw;
-  },
-  'X::TypeCheck::Return',
-  -> Mu $got is raw, Mu $expected is raw {
-      X::TypeCheck::Return.new(:$got, :$expected).throw;
-  },
-  'X::Assignment::RO',
-  -> $value is raw = "value" {
-      X::Assignment::RO.new(:$value).throw;
-  },
-  'X::ControlFlow::Return',
-  -> $out-of-dynamic-scope is raw = False {
-      X::ControlFlow::Return.new(:$out-of-dynamic-scope).throw;
-  },
-  'X::Method::NotFound',
-  -> Mu $invocant is raw, $method is raw, $typename is raw, $private is raw = False, :$in-class-call is raw = False, :$containerized is raw = False {
-      X::Method::NotFound.new(:$invocant, :$method, :$typename, :$private, :$in-class-call, :$containerized).throw
-  },
-  'X::Method::InvalidQualifier',
-  -> $method, Mu $invocant, Mu $qualifier-type {
-      X::Method::InvalidQualifier.new(:$method, :$invocant, :$qualifier-type).throw
-  },
-  'X::Multi::Ambiguous',
-  -> $dispatcher is raw, @ambiguous is raw, $capture is raw {
-      X::Multi::Ambiguous.new(:$dispatcher, :@ambiguous, :$capture).throw
-  },
-  'X::Multi::NoMatch',
-  -> $dispatcher is raw, $capture is raw {
-      X::Multi::NoMatch.new(:$dispatcher, :$capture).throw
-  },
-  'X::Role::Initialization',
-  -> $role is raw {
-      X::Role::Initialization.new(:$role).throw
-  },
-  'X::Inheritance::NotComposed',
-  -> $child-name is raw, $parent-name is raw {
-      X::Inheritance::NotComposed.new(:$child-name, :$parent-name).throw;
-  },
-  'X::Parameter::RW',
-  -> Mu $got is raw, $symbol is raw {
-      X::Parameter::RW.new(:$got, :$symbol).throw;
-  },
-  'X::PhaserExceptions',
-  -> @exceptions is raw {
-      X::PhaserExceptions.new(exceptions =>
-        @exceptions.map(-> Mu \e { EXCEPTION(e) })).throw;
-  },
-  'X::Trait::Invalid',
-  -> $type is raw, $subtype is raw, $declaring is raw, $name is raw {
-      X::Trait::Invalid.new(:$type, :$subtype, :$declaring, :$name).throw;
-  },
-  'X::Parameter::InvalidConcreteness',
-  -> $expected is raw, $got is raw, $routine is raw, $param is raw, Bool() $should-be-concrete is raw, Bool() $param-is-invocant is raw {
-      X::Parameter::InvalidConcreteness.new(:$expected, :$got, :$routine, :$param, :$should-be-concrete, :$param-is-invocant).throw;
-  },
-  'X::NYI',
-  -> $feature is raw {
-      X::NYI.new(:$feature).throw;
-  },
-#?endif
-#?if moar
+
 nqp::bindcurhllsym('P6EX', BEGIN nqp::hash(
-#?endif
+
   'X::NoDispatcher',
   -> $redispatcher is raw {
       X::NoDispatcher.new(:$redispatcher).throw;

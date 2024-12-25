@@ -59,9 +59,9 @@ nqp::bindhllsym('Raku', '$!ARGITER', 0);
 #?if jvm
 sub MAIN(*@ARGS) {
 #?endif
-#?if moar
+
 sub MAIN(@ARGS) {
-#?endif
+
 #?if js
 sub MAIN(*@ARGS) {
 #?endif

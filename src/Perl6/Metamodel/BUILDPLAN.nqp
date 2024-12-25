@@ -144,7 +144,7 @@ role Perl6::Metamodel::BUILDPLAN {
             if nqp::can($attribute, 'container_initializer')
               && nqp::isconcrete(my $ci := $attribute.container_initializer) {
 
-                # https://github.com/rakudo/rakudo/issues/1226
+                
                 self.throw_compound_attribute_NYI($target, $attribute)
                   if nqp::can($attribute, 'build')
                   && nqp::isconcrete($attribute.build);

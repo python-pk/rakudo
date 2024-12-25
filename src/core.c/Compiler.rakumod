@@ -16,7 +16,7 @@ class Compiler does Systemic {
       BEGIN nqp::ifnull(nqp::atkey($config,'codename'),"");
 
     submethod TWEAK(--> Nil) {
-        # https://github.com/rakudo/rakudo/issues/3436
+        
         nqp::bind($!name,'rakudo');
         nqp::bind($!auth,'Yet Another Society');
 

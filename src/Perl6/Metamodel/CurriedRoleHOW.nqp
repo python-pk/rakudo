@@ -24,9 +24,6 @@ class Perl6::Metamodel::CurriedRoleHOW
     does Perl6::Metamodel::TypePretense
     does Perl6::Metamodel::RoleContainer
     does Perl6::Metamodel::LanguageRevision
-#?if !moar
-    does Perl6::Metamodel::InvocationProtocol
-#?endif
 {
     has $!curried_role;
     has @!pos_args;
@@ -90,9 +87,6 @@ class Perl6::Metamodel::CurriedRoleHOW
         my $HOW := self.new(:$curried_role, :@pos_args, :%named_args);
         my $type := nqp::newtype($HOW, 'Uninstantiable');
         nqp::settypehll($type, 'Raku');
-#?if !moar
-        $HOW.compose_invocation($type);
-#?endif
 
         nqp::settypecheckmode($type, nqp::const::TYPE_CHECK_NEEDS_ACCEPTS)
     }

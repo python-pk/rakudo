@@ -31,7 +31,7 @@ my $*REPL-SCRUBBER = -> $_ is copy {
     }
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/5245
+
 is-run-repl «'my int $t=4; $t.say;'  '$t.say'», <4 4>,
     'can use native typed variable on subsequent lines (1)';
 
@@ -84,7 +84,7 @@ is-run-repl «'sub f { say "works" }'  'f()'», {
     .lines == 2 and .lines.tail eq 'works'
 }, 'single-line sub declaration works';
 
-# https://github.com/Raku/old-issue-tracker/issues/3543
+
 subtest 'assignment maintains values on subsequent lines' => {
     plan 4;
     is-run-repl «'my $a = 42; say 1'  '$a.say'», "1\n42\n",
@@ -127,7 +127,7 @@ is-run-repl ['emit 42'   ], /'emit without'/, '`emit` errors usefully';
 is-run-repl ['take 42'   ], /'take without'/, '`take` errors usefully';
 is-run-repl ['warn "foo"'], /'foo'         /, 'warn() shows warnings';
 
-# https://github.com/Raku/old-issue-tracker/issues/6106
+
 {
     is-run-repl ['say "hi"; die "meows";'], :out(/meows/),
         'previous output does not silence exceptions';
@@ -153,7 +153,7 @@ is-run-repl ['warn "foo"'], /'foo'         /, 'warn() shows warnings';
 
 
 
-# https://github.com/Raku/old-issue-tracker/issues/6104
+
 is-run-repl ['Nil'], /Nil/, 'REPL outputs Nil as a Nil';
 
 # Since there might be some differences in REPL sessions in whitespace
@@ -178,7 +178,7 @@ is-run-repl ['Nil'], /Nil/, 'REPL outputs Nil as a Nil';
     #    https://rt.perl.org/Ticket/Display.html?id=130456
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/3211
+
 {
     is-run-repl ['say 069'], :out("69\n"), :err(/
       'Potential difficulties:'
@@ -193,7 +193,7 @@ is-run-repl ['Nil'], /Nil/, 'REPL outputs Nil as a Nil';
     /), 'prefix 0 on valid octal warns in REPL';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/1393
+
 {
     my $proc = run $*EXECUTABLE, :in, :out, :err;
     $proc.in.close;
@@ -207,7 +207,7 @@ is-run-repl ['Nil'], /Nil/, 'REPL outputs Nil as a Nil';
     # }, 'Pressing CTRL+D in REPL produces correct output on exit';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/5399
+
 {
     my $code-to-run = q/[1..99].map:{[$_%%5&&'fizz', $_%%3&&'buzz'].grep:Str}/
         ~ "\nsay 'We are still alive';\n";
@@ -218,7 +218,7 @@ is-run-repl ['Nil'], /Nil/, 'REPL outputs Nil as a Nil';
         'exceptions from lazy-evaluated things do not crash REPL';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/5245
+
 {
     my $code = [~]  'my ( int8 $a,  int16 $b,  int32 $c,  int64 $d,',
                         'uint8 $e, uint16 $f, uint32 $g, uint64 $h,',
@@ -232,7 +232,7 @@ is-run-repl ['Nil'], /Nil/, 'REPL outputs Nil as a Nil';
     'Using native numeric types does not break REPL';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/5444
+
 {
     # REPL must not start, but if it does start and wait for input, it'll
     # "hang", from our point of view, which the test function will detect
@@ -242,7 +242,7 @@ is-run-repl ['Nil'], /Nil/, 'REPL outputs Nil as a Nil';
     'REPL with -M with non-existent module does not start';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/5575
+
 {
     is-run-repl "my \$x = 42;\nsay qq/The value is \$x/;\n",
         :err(''),
@@ -250,7 +250,7 @@ is-run-repl ['Nil'], /Nil/, 'REPL outputs Nil as a Nil';
     'variables persist across multiple lines of input';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/2917
+
 is-run-repl "my \\a = any set <1 2 3>;\nsay 1 ~~ a",
     :out{
         .contains('any') and .contains('False') and not .contains: 'True';
@@ -271,7 +271,7 @@ is-run-repl "my \\a = any set <1 2 3>;\nsay 1 ~~ a",
     'previously-entered code must not be re-run on every line of input';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/4325
+
 {
     my $code = 'sub x() returns Array of Int { return my @x of Int = 1,2,3 };'
         ~ "x().WHAT.say\n";
@@ -282,7 +282,7 @@ is-run-repl "my \\a = any set <1 2 3>;\nsay 1 ~~ a",
     'no bizzare types returned from redeclared "returns an `of` Array" sub';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/5157
+
 {
 
     is-run-repl join("\n", <last next redo>, 'say "rt127631-pass"', ''),
@@ -291,7 +291,7 @@ is-run-repl "my \\a = any set <1 2 3>;\nsay 1 ~~ a",
     'loop controls do not exit the REPL';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/6057
+
 {
     is-run-repl join("\n", 'Mu', ''),
         :err(''),
@@ -299,41 +299,41 @@ is-run-repl "my \\a = any set <1 2 3>;\nsay 1 ~~ a",
     ｢REPL can handle `Mu` as line's return value｣;
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/6667
+
 is-run-repl "say 42; none True\n", :err(''), :out{
     .contains('42') and not .contains: 'No such method';
 }, 'REPL does not explode with none Junction return values';
 
-# https://github.com/Raku/old-issue-tracker/issues/3254
+
 is-run-repl '"asa" ~~ /:s ^a* %',
     :out{.contains: 'Missing quantifier' and not .contains('NullPointerException')},
     'REPL detects incomplete regex (no NullPointerException)';
 
-# https://github.com/Raku/old-issue-tracker/issues/2768
+
 is-run-repl '$_**2',
     :out{!.contains('message') and !.contains('not found')
          and !.contains('No such method')},
     :err(''),
     'no complaints about .message';
 
-# https://github.com/Raku/old-issue-tracker/issues/3599
+
 is-run-repl 'say "b".subst(/(.)/,{$0~$0}); say "%20" ~~ /:i \%(<[0..9A..F]>**2)/;'
             ~ "\n" ~ 'say "a".subst(/(.)/,{$0~$0});',
     :out{.contains('bb') and .contains('aa') and not .contains('2020')},
     :err(''),
     ｢no sticky $0 values across lines｣;
 
-# https://github.com/rakudo/rakudo/issues/1925
+
 is-run-repl '&say.package', :out{.contains: 'GLOBAL'}, :err(''),
     ｢REPL can auto-print non-Mu things that lack .WHERE and .gist｣;
 
-# https://github.com/rakudo/rakudo/issues/2184
+
 is-run-repl 'my $fh = $*EXECUTABLE.open(:r)',
 	:out{.contains: 'IO::Handle' and not .contains('Failed to write')},
 	:err(''),
 	｢no complaints about failed writing to filehandle when opening a file｣;
 
-# https://github.com/rakudo/rakudo/issues/3952
+
 subtest 'check with additional CLI arguments' => {
     plan 3;
     my $p := run $*EXECUTABLE,

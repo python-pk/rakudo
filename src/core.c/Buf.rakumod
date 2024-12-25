@@ -383,10 +383,6 @@ my role Blob[::T = uint8] does Positional[T] does Stringy is repr('VMArray') is 
 
     # other then *8 not supported yet
     my int $bpe = try {
-#?if jvm
-        # https://colabti.org/irclogger/irclogger_log/perl6-dev?date=2017-01-20#l202
-        CATCH { default { Nil } }
-#?endif
         (T.^nativesize / 8).Int
     } // 1;
 
@@ -472,7 +468,7 @@ my role Blob[::T = uint8] does Positional[T] does Stringy is repr('VMArray') is 
         );
     }
 
-#?if moar
+
     # for simplicity's sake, these are not multis
     method read-int8(::?ROLE:D: int $offset, Endian $? --> int) is raw {
         nqp::readint(self,$offset,
@@ -558,7 +554,7 @@ my role Blob[::T = uint8] does Positional[T] does Stringy is repr('VMArray') is 
         nqp::readnum(self,$offset,
           nqp::bitor_i(nqp::const::BINARY_SIZE_64_BIT,$endian))
     }
-#?endif
+
 
     method read-bits(::?ROLE:D \SELF: int $pos, Int:D $bits --> Int:D) {
         my $result := SELF.read-ubits($pos, $bits);
@@ -650,7 +646,7 @@ my role Blob[::T = uint8] does Positional[T] does Stringy is repr('VMArray') is 
           nqp::decode(self, Rakudo::Internals.NORMALIZE_ENCODING($encoding))
         )
     }
-#?if !jvm
+
     multi method decode(Blob:D: $encoding, Str :$replacement!, Bool:D :$strict = False) {
         nqp::p6box_s(
           nqp::decoderepconf(self,
@@ -664,16 +660,7 @@ my role Blob[::T = uint8] does Positional[T] does Stringy is repr('VMArray') is 
             Rakudo::Internals.NORMALIZE_ENCODING($encoding),
             $strict ?? 0 !! 1))
     }
-#?endif
-#?if jvm
-    multi method decode(Blob:D: $encoding, Bool:D :$strict = False) {
-        nqp::p6box_s(
-          nqp::decode(self, Rakudo::Internals.NORMALIZE_ENCODING($encoding)))
-    }
-    multi method decode(Blob:D: $encoding, Str:D :$replacement!, Bool:D :$strict = False) {
-        NYI('decode-with-replacement').throw;
-    }
-#?endif
+
 
     my $char := nqp::list_s(
       '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
@@ -1173,7 +1160,7 @@ my role Buf[::T = uint8] does Blob[T] is repr('VMArray') is array_type(T) {
         self
     }
 
-#?if moar
+
     # for simplicity's sake, these are not multis
     method write-int8(::?ROLE:
       int $offset, int8 $value, Endian $endian = NativeEndian
@@ -1282,7 +1269,7 @@ my role Buf[::T = uint8] does Blob[T] is repr('VMArray') is array_type(T) {
           nqp::bitor_i(nqp::const::BINARY_SIZE_64_BIT,$endian));
         $self
     }
-#?endif
+
 
     sub POS-OOR(\SELF, int $pos --> Nil) is hidden-from-backtrace {
         die "Can only write from position 0..* in buffer{

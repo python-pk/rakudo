@@ -19,9 +19,9 @@ my class Code { # declared in BOOTSTRAP
     # runtime lookup because of bootstrap issues
     method reducer() { ::('&METAOP_REDUCE_LEFT') }
 
-#?if moar
+
     method bytecode-size() { nqp::syscall('code-bytecode-size', $!do) }
-#?endif
+
 
     proto method POSITIONS(|) {*} #  is implementation-detail
 

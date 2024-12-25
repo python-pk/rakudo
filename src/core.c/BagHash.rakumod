@@ -41,7 +41,7 @@ my class BagHash does Baggy {
           },
           STORE => -> $, Int() $value {
               nqp::if(
-                nqp::istype($value,Failure),    # https://github.com/Raku/old-issue-tracker/issues/5567
+                nqp::istype($value,Failure),    
                 $value.throw,
                 nqp::if(
                   $!elems,
@@ -204,7 +204,7 @@ my class BagHash does Baggy {
           },
           STORE => -> $, Int() $value {
               nqp::if(
-                # https://github.com/Raku/old-issue-tracker/issues/5567
+                
                 nqp::istype($value,Failure),
                 $value.throw,
                 nqp::if(

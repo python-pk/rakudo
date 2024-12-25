@@ -17,7 +17,7 @@ subtest 'Supply.interval with negative value warns' => {
 }
 
 if $*DISTRO.is-win {
-    # https://github.com/Raku/old-issue-tracker/issues/6591
+    
     skip 'is-run code is too complex to run on Windows';
 }
 else {
@@ -42,7 +42,7 @@ else {
 }
 
 if $*DISTRO.is-win {
-    # https://github.com/Raku/old-issue-tracker/issues/6591
+    
     skip 'is-run code is too complex to run on Windows';
 }
 else {
@@ -63,19 +63,19 @@ else {
     }
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/6244
+
 is-run ｢
     sub prefix:<ᔑ> (Pair $p --> Pair) is tighter(&postcircumfix:<[ ]>) {};
     print postcircumfix:<[ ]>(<foo bar ber>, 1)
 ｣, :out<bar>, 'no spurious warnings when invoking colonpaired routine';
 
-# https://github.com/Raku/old-issue-tracker/issues/6221
+
 todo 'crashes the JVM', 1 if $*VM.name eq 'jvm';
 is-run ｢my $a; $a [R~]= "b"; $a [Z~]= "b"; $a [X~]= "b"｣,
     'metaops + metaassign op do not produce spurious warnings';
 
-# https://github.com/Raku/old-issue-tracker/issues/6253
-# https://github.com/Raku/old-issue-tracker/issues/6185
+
+
 is-run ｢my $ = ^2 .grep: {try 1 after 0}; my $ = {try 5 == 5}()｣,
     'no spurious warnings with `try` thunks in blocks';
 
@@ -86,7 +86,7 @@ is-run ｢use experimental :macros; macro z($) { quasi {} };
     z $; z <x>; print "pass"｣, :compiler-args[<-I lib>], :out<pass>,
     'args to macros do not cause useless use warnings';
 
-# https://github.com/rakudo/rakudo/issues/2554
+
 is-run ｢my @a[Int] = 1,2,3; dd @a｣,
     'ignored shape specification issues a warning',
     :err(/'Ignoring [Int] as shape specification'/);

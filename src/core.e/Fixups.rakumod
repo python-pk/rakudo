@@ -277,7 +277,7 @@ augment class Str {
                Rakudo::Iterator.NGrams: self, $size, $limit, $step, $partial
     }
 
-#?if !jvm
+
     my constant $gcprop = nqp::unipropcode("General_Category");
     my constant $empty  = nqp::create(array[uint32]);
     multi method nomark(Str:D: --> Str:D) {
@@ -326,10 +326,7 @@ augment class Str {
             self
         }
     }
-#?endif
-#?if jvm
-    method nomark(Str:D:) { NYI('nomark').throw }
-#?endif
+
 
     # Return 1 if invocant has no uppercase chars, else 0
     method !lowercase-only() {

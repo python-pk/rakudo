@@ -11,7 +11,7 @@ throws-like q<sub foo ( ::T $val ) { my T $a is default($val); }; foo(42)>,
         # at compile time it's Mu. The RakuAST frontend fares better. For now don't be picky.
         message => rx:s/Default value \'\(\w+\)\' will never bind to a variable of type T/;
 
-# https://github.com/Raku/old-issue-tracker/issues/5728
+
 throws-like q[multi sub f(int $foo is rw) { }; f(42)],
         X::Comp,
         'calling multi sub that expects a rw native argument with a literal is caught at compile time';

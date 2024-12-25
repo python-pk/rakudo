@@ -117,9 +117,6 @@ my class Proc::Async {
     has @!promises;
     has $!encoder;
     has @!close-after-exit;
-#?if !moar
-    has $!start-lock = Lock.new;
-#?endif
 
     proto method new(|) {*}
     multi method new(*@args where .so) {
@@ -320,39 +317,21 @@ my class Proc::Async {
               !! self!start-internal($scheduler, $ENV, $cwd)
         }
 
-#?if moar
+
         if nqp::eqaddr(cas($!started, False, True),False) {
             actually-start
         }
         elsif $!started {
             X::Proc::Async::AlreadyStarted.new(proc => self).throw
         }
-#?endif
 
-#?if !moar
-        $!start-lock.protect: {
-            X::Proc::Async::AlreadyStarted.new(proc => self).throw
-              if $!started;
 
-            $!started := True;
-            actually-start
-        }
-#?endif
     }
 
     method !start-internal($scheduler, $ENV, $cwd --> Promise) {
         my %ENV := $ENV ?? $ENV.hash !! %*ENV;
 
-#?if jvm
-        # The Java process API does not allow disabling Javas
-        # sophisticated heuristics of command mangling.
-        # NQPs spawnprocasync implementation on JVM thus overwrites
-        # arg[0] with the program name and forwards the result to Javas
-        # APIs.
-        # So we do not quote the arguments and just let Java do its magic.
-        my @quoted-args := @!args;
-#?endif
-#?if !jvm
+
         my @quoted-args;
         if Rakudo::Internals.IS-WIN {
             @quoted-args.push(
@@ -363,7 +342,7 @@ my class Proc::Async {
         else {
             @quoted-args := @!args;
         }
-#?endif
+
 
         $!exit_promise := Promise.new;
 

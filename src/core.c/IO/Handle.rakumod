@@ -16,7 +16,7 @@ my class IO::Handle {
           !! ($!encoding = $encoding || 'utf8')
     }
 
-#?if moar
+
     # Make sure we close any open files on exit
     my $opened := nqp::list;
     my $opened-locker := Lock.new;
@@ -54,10 +54,7 @@ my class IO::Handle {
             False
         }
     }
-#?endif
-#?if !moar
-    method do-not-close-automatically(IO::Handle:D: --> False) { }
-#?endif
+
 
     method open(IO::Handle:D:
       :$r, :$w, :$x, :$a, :$update,
@@ -168,9 +165,9 @@ my class IO::Handle {
                 nqp::concat(nqp::if($append,      'a', ''),
                 nqp::concat(nqp::if($truncate,    't', ''),
                             nqp::if($exclusive,   'x', ''))))));
-#?if moar
+
             self!remember-to-close;
-#?endif
+
         }
 
         $!chomp = $chomp;
@@ -230,9 +227,9 @@ my class IO::Handle {
               nqp::isconcrete($!decoder),
               ($!decoder := Encoding::Decoder)
             ),
-#?if moar
+
             self!forget-about-closing,  # mark as closed
-#?endif
+
             nqp::closefh($!PIO),        # close, ignore errors
             $!PIO := nqp::null          # mark HLL handle now also closed
           )
@@ -317,7 +314,7 @@ my class IO::Handle {
     my class Words does Iterator {
         has $!handle is built(:bind);
         has $!close  is built(:bind);
-        has str $!str= ""; # https://github.com/Raku/old-issue-tracker/issues/4690;
+        has str $!str= ""; ;
         has int $!searching = 1;
         has int $!pos;
 
@@ -633,7 +630,7 @@ my class IO::Handle {
     method lock(IO::Handle:D:
         Bool:D :$non-blocking = False, Bool:D :$shared = False --> True
     ) {
-#?if moar
+
         # Pre-filter guaranteed failures and provide clear explanations for them
         my int $open-mode = nqp::syscall("handle-open-mode", $!PIO);
         my str $error-state = !$shared && nqp::iseq_i($open-mode, nqp::const::OPEN_MODE_RO)
@@ -646,26 +643,26 @@ my class IO::Handle {
                 :lock-type( 'non-' x $non-blocking ~ 'blocking, '
                     ~ ($shared ?? 'shared' !! 'exclusive') )
         }
-#?endif
+
 
         CATCH { default {
-#?if moar
+
             self!remember-to-close;
-#?endif
+
             fail X::IO::Lock.new: :os-error(.Str),
                 :lock-type( 'non-' x $non-blocking ~ 'blocking, '
                     ~ ($shared ?? 'shared' !! 'exclusive') );
         }}
-#?if moar
+
         self!forget-about-closing;
-#?endif
+
         nqp::lockfh($!PIO, 0x10*$non-blocking + $shared);
     }
 
     method unlock(IO::Handle:D: --> True) {
-#?if moar
+
         self!remember-to-close;
-#?endif
+
         nqp::unlockfh($!PIO);
     }
 
@@ -803,16 +800,10 @@ my class IO::Handle {
         );
 
         # don't sink result of .close; it might be a failed Proc
-#?if jvm
-        nqp::stmts(
-          nqp::if($close, my $ = self.close),
-          $res
-        )
-#?endif
-#?if !jvm
+
         my $ = self.close if $close;
         $res
-#?endif
+
     }
 
     method !slurp-all-chars() {
@@ -905,11 +896,11 @@ my class IO::Handle {
         self.close
           if nqp::defined($!PIO)                   # not closed yet
           && nqp::isgt_i(nqp::filenofh($!PIO),2)   # not a standard handle
-#?if moar
+
           && nqp::not_i(                           # marked for closing
                nqp::isnull(nqp::atpos($opened,nqp::filenofh($!PIO)))
              )
-#?endif
+
     }
 
     method native-descriptor(IO::Handle:D:) {

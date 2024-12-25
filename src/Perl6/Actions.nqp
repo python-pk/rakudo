@@ -886,7 +886,7 @@ register_op_desugar('time_n', -> $qast {
 });
 {
     register_op_desugar('p6decontrv_internal', -> $qast {
-#?if moar
+
         QAST::Op.new(:op('dispatch'),
           QAST::SVal.new(
             :value($qast[1] eq '6c' ?? 'raku-rv-decont-6c' !! 'raku-rv-decont')
@@ -895,63 +895,12 @@ register_op_desugar('time_n', -> $qast {
             QAST::Op.new(:op('wantdecont'), $qast[0])
           )
         )
-#?endif
-#?if !moar
-        my $result   := QAST::Node.unique('result');
-        my $Scalar   := QAST::WVal.new(:value(nqp::gethllsym('Raku','Scalar')));
-        my $Iterable := QAST::WVal.new(:value(nqp::gethllsym('Raku','Iterable')));
-        QAST::Stmt.new(
-          QAST::Op.new(:op('bind'),
-            QAST::Var.new( :name($result), :scope('local'), :decl('var') ),
-            QAST::Op.new( :op('wantdecont'), $qast[0] )
-          ),
-          QAST::Op.new(:op('if'),
-            # If it's a container...
-            QAST::Op.new(:op('if'),
-              QAST::Op.new(:op('isconcrete_nd'),
-                QAST::Var.new(:name($result),:scope('local'))
-              ),
-              QAST::Op.new(:op('iscont'),
-                QAST::Var.new(:name($result),:scope('local'))
-              )
-            ),
-            # It's a container; is it an rw one?
-            QAST::Op.new(:op('if'),
-              QAST::Op.new(:op('isrwcont'),
-                QAST::Var.new(:name($result),:scope('local'))
-              ),
-              # Yes; does it contain an Iterable? If so, rewrap it. If
-              # not, strip it.
-              QAST::Op.new(:op('if'),
-                QAST::Op.new(:op('istype'),
-                  QAST::Var.new(:name($result),:scope('local')),
-                  $Iterable
-                ),
-                QAST::Op.new(:op('p6bindattrinvres'),
-                  QAST::Op.new(:op('create'),$Scalar),
-                  $Scalar,
-                  QAST::SVal.new(:value('$!value')),
-                  QAST::Op.new(:op('decont'),
-                    QAST::Var.new( :name($result),:scope('local'))
-                  )
-                ),
-                QAST::Op.new(:op('decont'),
-                  QAST::Var.new(:name($result),:scope('local'))
-                )
-              ),
-              # Not rw, so leave container in place.
-              QAST::Var.new(:name($result),:scope('local'))
-            ),
-            # Not a container, so just hand back value
-            QAST::Var.new(:name($result),:scope('local'))
-          )
-        )
-#?endif
+
     });
 }
 {
     register_op_desugar('p6assign', -> $qast {
-#?if moar
+
         my $cont := QAST::Node.unique('assign_cont');
         QAST::Stmts.new(
           QAST::Op.new(
@@ -967,30 +916,18 @@ register_op_desugar('time_n', -> $qast {
           ),
           QAST::Var.new( :name($cont), :scope('local') )
         )
-#?endif
-#?if !moar
-        QAST::Op.new( :op('assign'), $qast[0], $qast[1] )
-#?endif
+
     });
 }
 {
     register_op_desugar('p6attrinited', -> $qast {
-#?if moar
+
         QAST::Op.new(
           :op('dispatch'), :returns(int),
           QAST::SVal.new( :value('raku-is-attr-inited') ),
           $qast[0]
         );
-#?endif
-#?if !moar
-        QAST::Op.new(
-          :op('callmethod'), :name('check'),
-          QAST::WVal.new(
-            :value(nqp::gethllsym('Raku', 'UninitializedAttributeChecker'))
-          ),
-          $qast[0]
-        )
-#?endif
+
     });
 }
 
@@ -2837,13 +2774,6 @@ class Perl6::Actions is HLL::Actions does STDActions {
     method term:sym<lambda>($/) {
         my $ast   := $<pblock>.ast;
         my $block := $ast.ann('past_block');
-#?if !moar
-        $block[0].push(QAST::Var.new( :name('$*DISPATCHER'), :scope('lexical'), :decl('var') ));
-        $block[0].push(QAST::Op.new(
-            :op('takedispatcher'),
-            QAST::SVal.new( :value('$*DISPATCHER') )
-        ));
-#?endif
         make block_closure($ast);
     }
     method term:sym<unquote>($/) {
@@ -4144,14 +4074,11 @@ class Perl6::Actions is HLL::Actions does STDActions {
     method routine_declarator:sym<submethod>($/) { make $<method_def>.ast; }
 
     sub decontrv_op() {
-#?if moar
+
         nqp::getcomp('Raku').language_revision < 2
           ?? 'p6decontrv_6c'
           !! 'p6decontrv'
-#?endif
-#?if !moar
-        'p6decontrv'
-#?endif
+
     }
 
     method routine_def($/) {
@@ -4205,36 +4132,10 @@ class Perl6::Actions is HLL::Actions does STDActions {
 
         # Needs a slot that can hold a (potentially unvivified) dispatcher;
         # if this is a multi then we'll need it to vivify to a MultiDispatcher.
-#?if !moar
-        if $*MULTINESS eq 'multi' {
-            $world.install_lexical_symbol($block, '$*DISPATCHER', $world.find_single_symbol('MultiDispatcher'));
-        }
-        else {
-            $block[0].push(QAST::Var.new( :name('$*DISPATCHER'), :scope('lexical'), :decl('var') ));
-        }
-        $block[0].push(QAST::Op.new(
-            :op('takedispatcher'),
-            QAST::SVal.new( :value('$*DISPATCHER') )
-        ));
-#?endif
 
         # If it's a proto but not an onlystar, need some variables for the
         # {*} implementation to use (except on MoarVM, which relies on the
         # MoarVM dispatcher mechanism).
-#?if !moar
-        if $*MULTINESS eq 'proto' && !$<onlystar> {
-            $block[0].push(QAST::Op.new(
-                :op('bind'),
-                QAST::Var.new( :name('CURRENT_DISPATCH_CAPTURE'), :scope('lexical'), :decl('var') ),
-                QAST::Op.new( :op('savecapture') )
-            ));
-            $block[0].push(QAST::Op.new(
-                :op('bind'),
-                QAST::Var.new( :name('&*CURRENT_DISPATCHER'), :scope('lexical'), :decl('var') ),
-                QAST::Op.new( :op('getcodeobj'), QAST::Op.new( :op('curcode') ) )
-            ));
-        }
-#?endif
 
         # Set name if we have one
         if $<deflongname> {
@@ -4424,35 +4325,12 @@ class Perl6::Actions is HLL::Actions does STDActions {
         my $p_past := $world.push_lexpad($/);
         $p_past.name(~$name);
         $p_past.is_thunk(1);
-#?if moar
+
         $p_past.push(QAST::Op.new(
             :op('dispatch'),
             QAST::SVal.new( :value('boot-resume') ),
             QAST::IVal.new( :value(nqp::const::DISP_ONLYSTAR) )));
-#?endif
-#?if !moar
-        $p_past.push(QAST::Op.new(
-            :op('invokewithcapture'),
-            QAST::Op.new(
-                :op('ifnull'),
-                QAST::Op.new(
-                    :op('multicachefind'),
-                    QAST::Var.new(
-                        :name('$!dispatch_cache'), :scope('attribute'),
-                        QAST::Op.new( :op('getcodeobj'), QAST::Op.new( :op('curcode') ) ),
-                        QAST::WVal.new( :value($world.find_single_symbol_in_setting('Routine')) ),
-                    ),
-                    QAST::Op.new( :op('usecapture') )
-                ),
-                QAST::Op.new(
-                    :op('callmethod'), :name('find_best_dispatchee'),
-                    QAST::Op.new( :op('getcodeobj'), QAST::Op.new( :op('curcode') ) ),
-                    QAST::Op.new( :op('savecapture') )
-                ),
-            ),
-            QAST::Op.new( :op('usecapture') )
-        ));
-#?endif
+
         $world.pop_lexpad();
         $install_in.push(QAST::Stmt.new($p_past));
         my @p_params := [hash(is_capture => 1, type => $world.find_single_symbol_in_setting('Mu') )];
@@ -4710,22 +4588,6 @@ class Perl6::Actions is HLL::Actions does STDActions {
 
         # If it's a proto but not an onlystar, need some variables for the
         # {*} implementation to use on non-MoarVM.
-#?if !moar
-        if $*MULTINESS eq 'proto' && !$<onlystar> {
-            # Also stash the current lexical dispatcher and capture, for the {*}
-            # to resolve.
-            $past[0].push(QAST::Op.new(
-                :op('bind'),
-                QAST::Var.new( :name('CURRENT_DISPATCH_CAPTURE'), :scope('lexical'), :decl('var') ),
-                QAST::Op.new( :op('savecapture') )
-            ));
-            $past[0].push(QAST::Op.new(
-                :op('bind'),
-                QAST::Var.new( :name('&*CURRENT_DISPATCHER'), :scope('lexical'), :decl('var') ),
-                QAST::Op.new( :op('getcodeobj'), QAST::Op.new( :op('curcode') ) )
-            ));
-        }
-#?endif
 
         # attach return type
         if $*OFTYPE {
@@ -4879,14 +4741,6 @@ class Perl6::Actions is HLL::Actions does STDActions {
         $past.symbol('self', :scope('lexical'));
 
         # Needs a slot to hold a multi or method dispatcher.
-#?if !moar
-        $world.install_lexical_symbol($past, '$*DISPATCHER',
-            $world.find_single_symbol($*MULTINESS eq 'multi' ?? 'MultiDispatcher' !! 'MethodDispatcher'));
-        $past[0].push(QAST::Op.new(
-            :op('takedispatcher'),
-            QAST::SVal.new( :value('$*DISPATCHER') )
-        ));
-#?endif
 
         # Finish up code object.
         $world.attach_signature($code, $signature);
@@ -4978,35 +4832,12 @@ class Perl6::Actions is HLL::Actions does STDActions {
         }
 
         # Add dispatching code.
-#?if moar
+
         $BLOCK.push(QAST::Op.new(
             :op('dispatch'),
             QAST::SVal.new( :value('boot-resume') ),
             QAST::IVal.new( :value(nqp::const::DISP_ONLYSTAR) )));
-#?endif
-#?if !moar
-        $BLOCK.push(QAST::Op.new(
-            :op('invokewithcapture'),
-            QAST::Op.new(
-                :op('ifnull'),
-                QAST::Op.new(
-                    :op('multicachefind'),
-                    QAST::Var.new(
-                        :name('$!dispatch_cache'), :scope('attribute'),
-                        QAST::Op.new( :op('getcodeobj'), QAST::Op.new( :op('curcode') ) ),
-                        QAST::WVal.new( :value($*W.find_single_symbol_in_setting('Routine')) ),
-                    ),
-                    QAST::Op.new( :op('usecapture') )
-                ),
-                QAST::Op.new(
-                    :op('callmethod'), :name('find_best_dispatchee'),
-                    QAST::Op.new( :op('getcodeobj'), QAST::Op.new( :op('curcode') ) ),
-                    QAST::Op.new( :op('savecapture') )
-                )
-            ),
-            QAST::Op.new( :op('usecapture') )
-        ));
-#?endif
+
         $BLOCK.node($/);
         $BLOCK.is_thunk(1);
         make $BLOCK;
@@ -6823,43 +6654,12 @@ class Perl6::Actions is HLL::Actions does STDActions {
     }
 
     method term:sym<onlystar>($/) {
-#?if moar
+
         make QAST::Op.new(
             :op('dispatch'),
             QAST::SVal.new( :value('boot-resume') ),
             QAST::IVal.new( :value(nqp::const::DISP_ONLYSTAR) ));
-#?endif
-#?if !moar
-        my $dc_name := QAST::Node.unique('dispatch_cap');
-        my $stmts := QAST::Stmts.new(
-            QAST::Op.new(
-                :op('bind'),
-                QAST::Var.new( :name($dc_name), :scope('local'), :decl('var') ),
-                QAST::Var.new( :name('CURRENT_DISPATCH_CAPTURE'), :scope('lexical') )
-            ),
-            QAST::Op.new(
-                :op('invokewithcapture'),
-                QAST::Op.new(
-                    :op('ifnull'),
-                    QAST::Op.new(
-                        :op('multicachefind'),
-                        QAST::Var.new(
-                            :name('$!dispatch_cache'), :scope('attribute'),
-                            QAST::Var.new( :name('&*CURRENT_DISPATCHER'), :scope('lexical') ),
-                            QAST::WVal.new( :value($*W.find_single_symbol_in_setting('Routine')) ),
-                        ),
-                        QAST::Var.new( :name($dc_name), :scope('local') )
-                    ),
-                    QAST::Op.new(
-                        :op('callmethod'), :name('find_best_dispatchee'),
-                        QAST::Var.new( :name('&*CURRENT_DISPATCHER'), :scope('lexical') ),
-                        QAST::Var.new( :name($dc_name), :scope('local') )
-                    )
-                ),
-                QAST::Var.new( :name($dc_name), :scope('local') )
-            ));
-        make QAST::Op.new( :op('locallifetime'), $stmts, $dc_name );
-#?endif
+
     }
 
     method args($/) {
@@ -7248,13 +7048,6 @@ class Perl6::Actions is HLL::Actions does STDActions {
         }
         else {
             my $block := $past.ann('past_block');
-#?if !moar
-            $block[0].push(QAST::Var.new( :name('$*DISPATCHER'), :scope('lexical'), :decl('var') ));
-            $block[0].push(QAST::Op.new(
-                :op('takedispatcher'),
-                QAST::SVal.new( :value('$*DISPATCHER') )
-            ));
-#?endif
             $past := block_closure($past);
             $past.annotate('bare_block', QAST::Op.new( :op('call'), $past ));
         }
@@ -7662,50 +7455,7 @@ Did you mean a call like '"
         # regex-ish code like m//, s///, or tr/// but NOT for S/// nor TR///
         my $boolify := !($negated || $rhs.ann('regex_match_code'));
 
-#?if !moar
-        # Call $rhs.ACCEPTS( $_ ), where $_ is $lhs.
-        $sm_call := QAST::Op.new(
-                        :op('callmethod'), :name('ACCEPTS'),
-                        QAST::Op.new(
-                            :op('bind'),
-                            QAST::Var.new( :name($rhs_local), :scope('local'), :decl('var') ),
-                            $rhs ),
-                        WANTED(QAST::Var.new( :name('$_'), :scope('lexical') ),'sm'));
-        $sm_call.annotate('smartmatch_accepts', 1);
-        $sm_call.annotate('smartmatch_negated', $negated);
 
-        if $negated {
-            $sm_call := QAST::Op.new( :op('call'), :name('&prefix:<!>'), $sm_call );
-        }
-
-        $sm_call := QAST::Op.new( :op('bind'),
-                QAST::Var.new( :name($result_var), :scope('local'), :decl('var') ),
-                $sm_call
-            );
-
-        if $boolify {
-            my $rhs_var := QAST::Var.new( :name($rhs_local), :scope('local') );
-            my $rvar := QAST::Var.new( :name($result_var), :scope('local') );
-            $sm_call := QAST::Stmts.new(
-                $sm_call,
-                QAST::Op.new(
-                    :op('if'),
-                    QAST::Op.new(
-                        :op('istype'),
-                        $rhs_var,
-                        QAST::WVal.new( :value($*W.find_single_symbol_in_setting('Regex')) )),
-                    $rvar,
-                    QAST::Op.new(
-                        :op('bind'),
-                        $rvar,
-                        QAST::Op.new(
-                            :op('callmethod'),
-                            :name('Bool'),
-                            $rvar ))));
-            $sm_call.annotate('smartmatch_boolified', 1);
-        }
-#?endif
-#?if moar
         $sm_call := QAST::Op.new(
             :op<bind>,
             QAST::Var.new( :name($result_var), :scope('local'), :decl('var') ),
@@ -7719,7 +7469,7 @@ Did you mean a call like '"
         );
         $sm_call[1].annotate('smartmatch_accepts', 1);
         $sm_call[1].annotate('smartmatch_negated', $negated);
-#?endif
+
 
         QAST::Op.new(
             :op('locallifetime'),
@@ -9382,10 +9132,7 @@ Did you mean a call like '"
         # handling.
         if $need_full_binder {
             $block.custom_args(1);
-#?if !moar
-            $block[0].push(QAST::Op.new( :op('p6bindsig') ));
-#?endif
-#?if moar
+
             $block[0].push(QAST::Op.new(
                 :op('if'),
                 QAST::Op.new(
@@ -9399,14 +9146,14 @@ Did you mean a call like '"
                 ),
                 QAST::Op.new( :op('p6bindsig') )
             ));
-#?endif
+
         }
 
-#?if moar
+
         if $multi {
             $block[0].push(QAST::Op.new( :op('bindcomplete') ));
         }
-#?endif
+
 
         $block;
     }
@@ -9783,23 +9530,13 @@ Did you mean a call like '"
                             QAST::Op.new(
                                 :op('bind'),
                                 QAST::Var.new(:name($name), :scope('local')),
-#?if moar
+
                                 QAST::Op.new(
                                     :op<dispatch>,
                                     QAST::SVal.new(:value<raku-coercion>),
                                     QAST::Var.new(:name($low_param_type), :scope<local>),
                                     QAST::Var.new(:name($name), :scope<local>))))));
-#?endif
-#?if !moar
-                                QAST::Op.new(
-                                    :op('callmethod'),
-                                    :name('coerce'),
-                                    QAST::Op.new(
-                                        :op('how'),
-                                        QAST::Var.new(:name($low_param_type), :scope('local'))),
-                                    QAST::Var.new(:name($low_param_type), :scope('local')),
-                                    QAST::Var.new(:name($name), :scope('local')))))));
-#?endif
+
             }
             elsif $ptype_archetypes.coercive {
                 $decont_name_invalid := 1;
@@ -9818,21 +9555,13 @@ Did you mean a call like '"
                         QAST::Op.new(
                             :op('bind'),
                             QAST::Var.new( :name($name), :scope('local') ),
-#?if moar
+
                             QAST::Op.new(
                                 :op<dispatch>,
                                 QAST::SVal.new(:value<raku-coercion>),
                                 QAST::WVal.new(:value($param_type)),
                                 QAST::Var.new(:name($name), :scope<local>)))));
-#?endif
-#?if !moar
-                            QAST::Op.new(
-                                :op('callmethod'),
-                                :name('coerce'),
-                                QAST::WVal.new(:value($param_type.HOW)),
-                                QAST::WVal.new(:value($param_type)),
-                                QAST::Var.new( :name($name), :scope('local') )))));
-#?endif
+
             }
 
             # If it's optional, do any default handling.

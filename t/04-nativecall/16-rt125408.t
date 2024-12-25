@@ -12,7 +12,7 @@ class Foo {
    }
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/4324
+
 lives-ok {
    for ^10 {
       for (int16, int32,num64, num32 ) -> $type {

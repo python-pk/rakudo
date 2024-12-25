@@ -163,21 +163,14 @@ my class Str does Stringy { # declared in BOOTSTRAP
     --> Bool:D) {
         nqp::hllbool($ignorecase
           ?? $ignoremark
-#?if moar
+
             ?? nqp::eqaticim(self,$needle,0)
             !! nqp::eqatic(self,$needle,0)
-#?endif
-#?if !moar
-            ?? self!die-named('ignorecase and :ignoremark')
-            !! nqp::eqat(nqp::fc(self),nqp::fc($needle),0)
-#?endif
+
           !! $ignoremark
-#?if moar
+
             ?? nqp::eqatim(self,$needle,0)
-#?endif
-#?if !moar
-            ?? self!die-named('ignoremark')
-#?endif
+
             !! nqp::eqat(self,$needle,0)
         )
     }
@@ -186,12 +179,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
       Str:D $needle, :m(:$ignoremark)!
     --> Bool:D) {
         nqp::hllbool($ignoremark
-#?if moar
+
           ?? nqp::eqatim(self,$needle,0)
-#?endif
-#?if !moar
-          ?? self!die-named('ignoremark')
-#?endif
+
           !! nqp::eqat(self,$needle,0)
         )
     }
@@ -205,25 +195,17 @@ my class Str does Stringy { # declared in BOOTSTRAP
     --> Bool:D) {
         nqp::hllbool($ignorecase
           ?? $ignoremark
-#?if moar
+
             ?? nqp::eqaticim(self,$needle,
                  nqp::sub_i(nqp::chars(self),nqp::chars($needle)))
             !! nqp::eqatic(self,$needle,
                nqp::sub_i(nqp::chars(self),nqp::chars($needle)))
-#?endif
-#?if !moar
-            ?? self!die-named('ignorecase and :ignoremark')
-            !! nqp::eqat(nqp::fc(self),nqp::fc($needle),
-                 nqp::sub_i(nqp::chars(self),nqp::chars($needle)))
-#?endif
+
           !! $ignoremark
-#?if moar
+
             ?? nqp::eqatim(self,$needle,
                  nqp::sub_i(nqp::chars(self),nqp::chars($needle)))
-#?endif
-#?if !moar
-            ?? self!die-named('ignoremark')
-#?endif
+
             !! nqp::eqat(self,$needle,
                  nqp::sub_i(nqp::chars(self),nqp::chars($needle)))
         )
@@ -233,13 +215,10 @@ my class Str does Stringy { # declared in BOOTSTRAP
       Str:D $needle, :m(:$ignoremark)!
     --> Bool:D) {
         nqp::hllbool($ignoremark
-#?if moar
+
           ?? nqp::eqatim(self,$needle,
                nqp::sub_i(nqp::chars(self),nqp::chars($needle)))
-#?endif
-#?if !moar
-          ?? self!die-named('ignoremark')
-#?endif
+
           !! nqp::eqat(self,$needle,
                nqp::sub_i(nqp::chars(self),nqp::chars($needle)))
         )
@@ -262,21 +241,14 @@ my class Str does Stringy { # declared in BOOTSTRAP
           ?? self!fail-oor($pos)
           !! nqp::hllbool($ignorecase
                ?? $ignoremark
-#?if moar
+
                  ?? nqp::eqaticim(self,$needle,$pos)
                  !! nqp::eqatic(self,$needle,$pos)
-#?endif
-#?if !moar
-                 ?? self!die-named('ignorecase and :ignoremark')
-                 !! nqp::eqat(nqp::fc(self),nqp::fc($needle),$pos)
-#?endif
+
                !! $ignoremark
-#?if moar
+
                  ?? nqp::eqatim(self,$needle,$pos)
-#?endif
-#?if !moar
-                 ?? self!die-named('ignoremark')
-#?endif
+
                  !! nqp::eqat(self,$needle,$pos)
              )
     }
@@ -287,12 +259,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
         nqp::isbig_I(nqp::decont($pos)) || nqp::islt_i($pos,0)
           ?? self!fail-oor($pos)
           !! nqp::hllbool($ignoremark
-#?if moar
+
                ?? nqp::eqatim(self,$needle,$pos)
-#?endif
-#?if !moar
-               ?? self!die-named('ignoremark')
-#?endif
+
                !! nqp::eqat(self,$needle,$pos)
              )
     }
@@ -316,21 +285,14 @@ my class Str does Stringy { # declared in BOOTSTRAP
         nqp::hllbool(
           nqp::isne_i($ignorecase
             ?? $ignoremark
-#?if moar
+
               ?? nqp::indexicim(self,$needle,0)
               !! nqp::indexic(self,$needle,0)
-#?endif
-#?if !moar
-              ?? self!die-named('ignorecase and :ignoremark')
-              !! nqp::index(nqp::fc(self),nqp::fc($needle),0)
-#?endif
+
             !! $ignoremark
-#?if moar
+
               ?? nqp::indexim(self,$needle,0)
-#?endif
-#?if !moar
-              ?? self!die-named('ignoremark')
-#?endif
+
               !! nqp::index(self,$needle,0),
             -1
           )
@@ -342,12 +304,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
     --> Bool:D) {
         nqp::hllbool(
           nqp::isne_i($ignoremark
-#?if moar
+
             ?? nqp::indexim(self,$needle,0)
-#?endif
-#?if !moar
-            ?? self!die-named('ignoremark')
-#?endif
+
             !! nqp::index(self,$needle,0),
             -1
           )
@@ -374,21 +333,14 @@ my class Str does Stringy { # declared in BOOTSTRAP
           !! nqp::hllbool(
                nqp::isne_i($ignorecase
                  ?? $ignoremark
-#?if moar
+
                    ?? nqp::indexicim(self,$needle,$pos)
                    !! nqp::indexic(self,$needle,$pos)
-#?endif
-#?if !moar
-                   ?? self!die-named('ignorecase and :ignoremark')
-                   !! nqp::index(nqp::fc(self),nqp::fc($needle),$pos)
-#?endif
+
                  !! $ignoremark
-#?if moar
+
                    ?? nqp::indexim(self,$needle,$pos)
-#?endif
-#?if !moar
-                   ?? self!die-named('ignoremark')
-#?endif
+
                    !! nqp::index(self,$needle,$pos),
                  -1
                )
@@ -403,12 +355,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
           !! nqp::hllbool(
                nqp::isne_i(
                  $ignoremark
-#?if moar
+
                    ?? nqp::indexim(self,$needle,$pos)
-#?endif
-#?if !moar
-                   ?? self!die-named('ignoremark')
-#?endif
+
                    !! nqp::index(self,$needle,$pos),
                  -1,
                )
@@ -455,16 +404,10 @@ my class Str does Stringy { # declared in BOOTSTRAP
         my int $add  = $overlap ?? 1 !! nqp::chars($needle) || 1;
         my int $pos  = $start;
         my int $index;
-#?if moar
+
         nqp::while(
           nqp::isne_i(($index = nqp::indexic(self,$needle,$pos)),-1),
-#?endif
-#?if !moar
-        my str $fcself   = nqp::fc(self);
-        my str $fcneedle = nqp::fc($needle);
-        nqp::while(
-          nqp::isne_i(($index = nqp::index($fcself,$fcneedle,$pos)),-1),
-#?endif
+
           nqp::stmts(
             nqp::push($indices,nqp::p6box_i($index)),
             ($pos = nqp::add_i($index,$add))
@@ -475,7 +418,7 @@ my class Str does Stringy { # declared in BOOTSTRAP
 
     # create indices using index with ignoremark
     method !indicesim(str $needle, $overlap, int $start) {
-#?if moar
+
         my $indices := nqp::create(IterationBuffer);
         my int $add  = $overlap ?? 1 !! nqp::chars($needle) || 1;
         my int $pos  = $start;
@@ -488,15 +431,12 @@ my class Str does Stringy { # declared in BOOTSTRAP
           )
         );
         $indices.List
-#?endif
-#?if !moar
-        self!die-named('ignoremark',2)
-#?endif
+
     }
 
     # create indices using index with ignorecase and ignoremark
     method !indicesicim(str $needle, $overlap, int $start) {
-#?if moar
+
         my $indices := nqp::create(IterationBuffer);
         my int $add  = $overlap ?? 1 !! nqp::chars($needle) || 1;
         my int $pos  = $start;
@@ -509,10 +449,7 @@ my class Str does Stringy { # declared in BOOTSTRAP
           )
         );
         $indices.List
-#?endif
-#?if !moar
-        self!die-named('ignorecase and :ignoremark',2)
-#?endif
+
     }
 
     multi method indices(Str:D:
@@ -550,14 +487,6 @@ my class Str does Stringy { # declared in BOOTSTRAP
           !! self!indices($needle, $overlap, $pos)
     }
 
-#?if !moar
-    # helper method for quitting if not supported
-    method !die-named(str $named, $levels = 1) {
-        NYI("Named parameter ':$named' on '{
-            callframe($levels + 1).code.name
-        }'").throw
-    }
-#?endif
 
     multi method index(Str:D:
       Str:D $needle, :i(:$ignorecase)!, :m(:$ignoremark)
@@ -565,21 +494,14 @@ my class Str does Stringy { # declared in BOOTSTRAP
         nqp::isne_i(
           (my $index := $ignorecase
             ?? $ignoremark
-#?if moar
+
               ?? nqp::indexicim(self,$needle,0)
               !! nqp::indexic(self,$needle,0)
-#?endif
-#?if !moar
-              ?? self!die-named('ignorecase and :ignoremark')
-              !! nqp::index(nqp::fc(self),nqp::fc($needle),0)
-#?endif
+
             !! $ignoremark
-#?if moar
+
               ?? nqp::indexim(self,$needle,0)
-#?endif
-#?if !moar
-              ?? self!die-named('ignoremark')
-#?endif
+
               !! nqp::index(self,$needle,0)
           ),-1
         ) ?? $index !! Nil
@@ -593,21 +515,14 @@ my class Str does Stringy { # declared in BOOTSTRAP
           !! nqp::isne_i(
                (my $index := $ignorecase
                  ?? $ignoremark
-#?if moar
+
                    ?? nqp::indexicim(self,$needle,$pos)
                    !! nqp::indexic(self,$needle,$pos)
-#?endif
-#?if !moar
-                   ?? self!die-named('ignorecase and :ignoremark')
-                   !! nqp::index(nqp::fc(self),nqp::fc($needle),$pos)
-#?endif
+
                  !! $ignoremark
-#?if moar
+
                    ?? nqp::indexim(self,$needle,$pos)
-#?endif
-#?if !moar
-                   ?? self!die-named('ignoremark')
-#?endif
+
                    !! nqp::index(self,$needle,$pos)
                ),-1
              ) ?? $index !! Nil
@@ -621,44 +536,30 @@ my class Str does Stringy { # declared in BOOTSTRAP
         my int $chars = nqp::chars(self);
         if $ignorecase {
             if $ignoremark {
-#?if moar
+
                 $chars = $index = $i
                   if ($i =
                        nqp::indexicim(nqp::substr(self,0,$chars),.Str,0)
                      ) > -1
                   for @needles;
-#?endif
-#?if !moar
-                self!die-named('ignorecase and :ignoremark')
-#?endif
+
             }
             else {
-#?if moar
+
                 $chars = $index = $i
                   if ($i =
                         nqp::indexic(nqp::substr(self,0,$chars),.Str,0)
                      ) > -1
                   for @needles;
-#?endif
-#?if !moar
-                my str $str = nqp::fc(self);
-                $chars = $index = $i
-                  if ($i =
-                       nqp::index(nqp::substr(self,0,$chars),nqp::fc(.Str))
-                     ) > -1
-                  for @needles;
-#?endif
+
             }
         }
         elsif $ignoremark {
-#?if moar
+
             $chars = $index = $i
               if ($i = nqp::indexim(nqp::substr(self,0,$chars),.Str,0)) > -1
               for @needles;
-#?endif
-#?if !moar
-            self!die-named('ignoremark')
-#?endif
+
         }
         else {
             $chars = $index = $i
@@ -674,12 +575,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
     --> Int:D) {
         nqp::isne_i(
           (my $index := $ignoremark
-#?if moar
+
             ?? nqp::indexim(self,$needle,0)
-#?endif
-#?if !moar
-            ?? self!die-named('ignoremark')
-#?endif
+
             !! nqp::index(self,$needle,0)
           ),-1
         ) ?? $index !! Nil
@@ -691,12 +589,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
           ?? self!fail-oor($pos)
           !! nqp::isne_i(
                (my $index := $ignoremark
-#?if moar
+
                  ?? nqp::indexim(self,$needle,$pos)
-#?endif
-#?if !moar
-                 ?? self!die-named('ignoremark')
-#?endif
+
                  !! nqp::index(self,$needle,$pos)
                ),-1
              ) ?? $index !! Nil
@@ -708,14 +603,11 @@ my class Str does Stringy { # declared in BOOTSTRAP
         my int $index = -1;
         my int $chars = nqp::chars(self);
         if $ignoremark {
-#?if moar
+
             $chars = $index = $i
               if ($i = nqp::indexim(nqp::substr(self,0,$chars),.Str,0)) > -1
               for @needles;
-#?endif
-#?if !moar
-            self!die-named('ignorecase and :ignoremark')
-#?endif
+
         }
         else {
             $chars = $index = $i
@@ -802,16 +694,12 @@ my class Str does Stringy { # declared in BOOTSTRAP
         ).Failure
     }
     multi method Numeric(Str:D: Bool :$fail-or-nil --> Numeric:D) {
-#?if !jvm
+
         # check for any combining characters
         nqp::isne_i(nqp::chars(self),nqp::codes(self))
           ?? self!combiners
           !!
-#?endif
-#?if jvm
-            # https://github.com/Raku/old-issue-tracker/issues/5418
-            # Needs Str.codes impl that doesn't just return chars
-#?endif
+
         nqp::iseq_i(                              # all numeric?
           nqp::findnotcclass(
             nqp::const::CCLASS_NUMERIC,self,0,nqp::chars(self)),
@@ -866,12 +754,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
         nqp::concat(
           '\x[',
           nqp::concat(
-#?if !jvm
+
             $char.NFC.map( *.base(16) ).join(','),
-#?endif
-#?if jvm
-            nqp::p6box_i(nqp::ord($char)).base(16),
-#?endif
+
             ']'
           )
         )
@@ -895,7 +780,7 @@ my class Str does Stringy { # declared in BOOTSTRAP
             ($ord  = nqp::ord($char)),
             nqp::push_s(
               $rakufied,
-#?if !jvm
+
               nqp::if(
                 nqp::isge_i($ord,768)                  # different from "0" ??
                   && nqp::isgt_i(
@@ -912,7 +797,7 @@ my class Str does Stringy { # declared in BOOTSTRAP
                        0
                      ),
                 self!hexify($char),                    # escape since > 0
-#?endif
+
                 nqp::if(
                   nqp::iseq_s($char,"\r\n"), # <-- this is a synthetic codepoint
                   '\r\n',                              # it's the common LF
@@ -926,9 +811,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
                   )
                 )
               )
-#?if !jvm
+
             )
-#?endif
+
           )
         );
         nqp::push_s($rakufied,'"');
@@ -1496,12 +1381,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
         $match
     }
 
-#?if moar
+
     proto method match(Any, |) {*}
-#?endif
-#?if !moar
-    proto method match(Any, |) { $/ := nqp::getlexcaller('$/'); {*} }
-#?endif
+
     multi method match(Cool:D $pattern, |c) {
         $/ := nqp::getlexcaller('$/');
         self.match(/ "$pattern": /,|c)
@@ -1632,12 +1514,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
                $pattern($cursor-init(Match,self,:0c)))
     }
 
-#?if moar
+
     proto method subst-mutate(|) {*}
-#?endif
-#?if !moar
-    proto method subst-mutate(|) { $/ := nqp::getlexcaller('$/'); {*} }
-#?endif
+
     multi method subst-mutate(
       Str:D $self is rw: Any:D $matcher, $replacement,
       :ii(:$samecase), :ss(:$samespace), :mm(:$samemark), *%options
@@ -1860,12 +1739,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
                   $!what
                 )),
                 ($!pos = $findpos +
-#?if moar
+
                   1
-#?endif
-#?if !moar
-                  (nqp::iseq_s(nqp::substr($!str, $findpos, 2), "\r\n") ?? 2 !! 1)
-#?endif
+
                 ),
                 $found
               ),
@@ -1883,12 +1759,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
                   $!what
                 ));
                 $!pos = $findpos +
-#?if moar
+
                   1
-#?endif
-#?if !moar
-                  (nqp::iseq_s(nqp::substr($!str, $findpos, 2), "\r\n") ?? 2 !! 1)
-#?endif
+
                   ;
             }
         }
@@ -1931,12 +1804,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
                 (my int $findpos = nqp::findcclass(
                   nqp::const::CCLASS_NEWLINE, $!str, $!pos, $left)),
                 (my int $nextpos = $findpos +
-#?if moar
+
                   1
-#?endif
-#?if !moar
-                  (nqp::iseq_s(nqp::substr($!str, $findpos, 2), "\r\n") ?? 2 !! 1)
-#?endif
+
                 ),
                 (my $found := nqp::box_s(
                   nqp::substr($!str, $!pos, $nextpos - $!pos),
@@ -1955,12 +1825,9 @@ my class Str does Stringy { # declared in BOOTSTRAP
                 my int $findpos = nqp::findcclass(
                   nqp::const::CCLASS_NEWLINE, $!str, $!pos, $left);
                 my int $nextpos = $findpos +
-#?if moar
+
                   1
-#?endif
-#?if !moar
-                  (nqp::iseq_s(nqp::substr($!str, $findpos, 2), "\r\n") ?? 2 !! 1)
-#?endif
+
                   ;
 
                 target.push(nqp::box_s(
@@ -2694,7 +2561,7 @@ my class Str does Stringy { # declared in BOOTSTRAP
         )
     }
 
-#?if !jvm
+
     multi method samemark(Str:D: Str:D $pattern --> Str:D) {
         nqp::if(
           nqp::chars(nqp::unbox_s($pattern)),        # something to work with
@@ -2761,10 +2628,7 @@ my class Str does Stringy { # declared in BOOTSTRAP
           self                                        # nothing to be done
         )
     }
-#?endif
-#?if jvm
-    multi method samemark(Str:D: Str:D $pattern) { NYI('samemark').throw }
-#?endif
+
 
     multi method samespace(Str:D: Str:D $pattern) { self!word-by-word($pattern, :samespace) }
 

@@ -4440,12 +4440,9 @@ class Perl6::World is HLL::World {
                 if !nqp::isnull($!resolved) && !nqp::istype($!resolved, NQPMu) {
                     my $do := nqp::getattr($code, $!Code, '$!do');
                     nqp::p6captureouters2([$do],
-#?if moar
+
                         nqp::getstaticcode($!resolved))
-#?endif
-#?if !moar
-                        $!resolved);
-#?endif
+
                 }
             }
         }

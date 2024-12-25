@@ -123,14 +123,9 @@ class Perl6::Metamodel::CoercionHOW
 
     # Coercion protocol method.
     method coerce($target, $value) {
-#?if moar
+
         nqp::dispatch('raku-coercion', nqp::decont($target), $value)
-#?endif
-#?if !moar
-        nqp::istype($value, $!target_type)
-          ?? $value                             # already done
-          !! self."!coerce_TargetType"($target, $value)
-#?endif
+
     }
 
     # Attempt coercion on TargetType

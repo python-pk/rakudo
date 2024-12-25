@@ -46,7 +46,7 @@ multi sub signal(*@signals, :$scheduler = $*SCHEDULER) {
 
             method tap(&emit, &, &, &tap) {
                 my $queue := $!scheduler.queue(:hint-time-sensitive);
-#?if moar
+
                 my $setup-semaphore := Semaphore.new(0);
                 my $cancellation := nqp::signal(
                     $queue,
@@ -56,13 +56,7 @@ multi sub signal(*@signals, :$scheduler = $*SCHEDULER) {
                     nqp::unbox_i($!signal),
                     SignalCancellation);
                 $setup-semaphore.acquire;
-#?endif
-#?if !moar
-                my $cancellation := nqp::signal($queue,
-                    -> $signum { emit(Signal($signum)) },
-                    nqp::unbox_i($!signal),
-                    SignalCancellation);
-#?endif
+
                 my $t = Tap.new({ nqp::cancel($cancellation) });
                 tap($t);
                 $t;

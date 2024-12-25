@@ -8,7 +8,7 @@ $*VM.name eq 'jvm' and plan :skip-all<These tests do not throw on JVM backend>;
 
 plan 2;
 
-# https://github.com/Raku/old-issue-tracker/issues/4480
+
 subtest '.roll' => {
     plan 3;
 
@@ -22,7 +22,7 @@ subtest '.roll' => {
         Exception, :message{ .contains: <unbox native>.all }, '(3)';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/4476
+
 subtest '.indent' => {
     plan 6;
 

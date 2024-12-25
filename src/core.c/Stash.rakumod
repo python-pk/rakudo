@@ -76,16 +76,9 @@ my class Stash { # declared in BOOTSTRAP
                             nqp::getattr(self, Hash, '$!descriptor')),
                         assignval)
                 );
-#?if moar
+
                 nqp::atomicbindattr(self, Map, '$!storage', $storage);
-#?endif
-#?if !moar
-                # XXX Here and below: nqp::atomicbindattr works on JVM but still breaks building CORE.d. Guess, it is
-                # not serializing properly, but a quick fix, similar to MoarVM's
-                # https://github.com/MoarVM/MoarVM/commit/a9fcd5a74e8c530b4baa8fdc348b82a71bc0824d, where this problem
-                # was observed too, didn't fix the situation. So, let's stick to the unsafe path for now.
-                nqp::bindattr(self, Map, '$!storage', $storage);
-#?endif
+
                 scalar
             };
         }
@@ -103,12 +96,9 @@ my class Stash { # declared in BOOTSTRAP
         $!lock.protect: {
             my $storage := nqp::clone(nqp::getattr(self,Map,'$!storage'));
             nqp::bindkey($storage, $key, bindval);
-#?if moar
+
                 nqp::atomicbindattr(self, Map, '$!storage', $storage);
-#?endif
-#?if !moar
-                nqp::bindattr(self, Map, '$!storage', $storage);
-#?endif
+
         }
         bindval
     }
@@ -125,12 +115,9 @@ my class Stash { # declared in BOOTSTRAP
             $pkg.^compose;
             $storage := nqp::clone($storage);
             nqp::bindkey($storage,$key,$pkg);
-#?if moar
+
                 nqp::atomicbindattr(self, Map, '$!storage', $storage);
-#?endif
-#?if !moar
-                nqp::bindattr(self, Map, '$!storage', $storage);
-#?endif
+
             $pkg
           })
         )
@@ -153,12 +140,9 @@ my class Stash { # declared in BOOTSTRAP
                     (my $storage := nqp::clone(my $old-storage := nqp::getattr(self,Map,'$!storage'))),
                     globalish
                 );
-#?if moar
+
                 nqp::atomicbindattr(self, Map, '$!storage', $storage);
-#?endif
-#?if !moar
-                nqp::bindattr(self, Map, '$!storage', $storage);
-#?endif
+
             }
         }
     }

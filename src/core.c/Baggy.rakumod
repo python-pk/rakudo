@@ -54,7 +54,7 @@ my role Baggy does QuantHash {
         )
     }
 
-    # https://github.com/rakudo/rakudo/issues/5057
+    
     multi method deepmap(Baggy:D: &mapper) {
         my $type  := self.WHAT;
         my $elems := $!elems;

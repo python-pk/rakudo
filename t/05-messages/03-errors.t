@@ -16,18 +16,18 @@ subtest '.map does not explode in optimizer' => {
 throws-like ｢(lazy <a b c>).nodemap: {;}｣, X::Cannot::Lazy, :action<nodemap>,
   'nodemap mentions right action when throwing on lazies';
 
-# https://github.com/rakudo/rakudo/issues/1314
+
 throws-like ｢'x'.substr: /x/, 'x'｣, Exception,
             message => /｢did you mean 'subst'｣/,
             'using substr instead of subst';
 
-# https://github.com/Raku/old-issue-tracker/issues/6672
+
 todo 'no location of error, yet', 1 if $*VM.name eq 'jvm';
 throws-like ｢sprintf "%d", class Foo {}.new｣,
     X::Str::Sprintf::Directives::BadType, :gist(/«line\s+\d+$$/),
 'errors from sprintf include location of error';
 
-# https://github.com/rakudo/rakudo/issues/1560
+
 subtest 'subsets get named in typecheck errors' => {
     plan 4;
     my subset MeowMix of Int where .so;
@@ -59,7 +59,7 @@ subtest 'like/unlike failures give useful diagnostics' => {
     '`unlike` says it wanted no match, not just "expected"';
 }
 
-# https://github.com/rakudo/rakudo/issues/1699
+
 throws-like {
     with Proc::Async.new: :out, :!err, $*EXECUTABLE, '-e', '' {
         .bind-stdout: IO::Handle.new;
@@ -68,7 +68,7 @@ throws-like {
 }, Exception, :message{.contains: 'handle not open'},
   'trying to bind Proc::Async to unopened handle gives useful error';
 
-# https://github.com/Raku/old-issue-tracker/issues/6580
+
 subtest 'unclosed hash quote index operator <> message' => {
     plan 2;
     throws-like "\n\nsay \$<\n\n", X::Comp::AdHoc,
@@ -82,18 +82,18 @@ subtest 'unclosed hash quote index operator <> message' => {
         :gist{ not .match: /:i:s<<expecting any of: / };
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/3553
+
 throws-like 'Int:erator:$;', X::InvalidTypeSmiley,
     ｢Don't report "missing semicolon" when semicolon present with complicated punctuation.｣,
     :message{ not .match: /:i:s<<missing semicolon/ };
 
 
-# https://github.com/Raku/old-issue-tracker/issues/6683
+
 is-run ｢use IO::Socket::Async::BlahBlahBlah｣, :exitcode(*.so),
     :err{.contains: 'Could not find' & none 'builtin type'},
 'non-found module in core namespace is not claimed to be built-in';
 
-# https://github.com/rakudo/rakudo/issues/1848
+
 throws-like ｢
     my class Supercalifragilisticexpialidocious {};
     (my $x := my class {}.new).^set_name: <Supercalifragilisticexpialidocious>;
@@ -101,7 +101,7 @@ throws-like ｢
 ｣, X::TypeCheck, :message{2 == +.comb: 'Supercalifragilisticexpialidocious'},
     'X::TypeCheck does not prematurely chop off the .raku';
 
-# https://github.com/Raku/old-issue-tracker/issues/5458
+
 subtest '.polymod with zero divisor does not reference guts in error' => {
     plan 4;
     throws-like { 1.polymod: 0           }, X::Numeric::DivideByZero,
@@ -117,27 +117,27 @@ subtest '.polymod with zero divisor does not reference guts in error' => {
         gist => /^ [<!after 'CORE.setting.'> . ]+ $/, 'Real (lazy)';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/4607
+
 throws-like '++.++', X::Multi::NoMatch,
     '++.++ construct does not throw LTA errors';
 
-# https://github.com/Raku/old-issue-tracker/issues/5526
+
 throws-like 'while (0){}', X::Syntax::Missing,
     message => /'whitespace' .* 'before curlies' .* 'hash subscript'/,
 'lack of whitespace in while (0){} suggests misparse as hash subscript';
 
-# https://github.com/Raku/old-issue-tracker/issues/5510
+
 is-run '*...‘WAT’', :err{not .contains: 'SORRY'}, :out(''), :exitcode{.so},
     'runtime time errors do not contain ==SORRY==';
 
-# https://github.com/Raku/old-issue-tracker/issues/3766
+
 is-run ｢
     grammar Bug { token term { a }; token TOP { <term> % \n } }
     Bug.parse( 'a' );
 ｣, :err(/'token TOP { <term>'/), :exitcode{.so},
     '`quantifier with %` error includes the token it appears in';
 
-# https://github.com/Raku/old-issue-tracker/issues/4242
+
 is-run 'sub rt125181 returns Str returns Int {}',
     :err{ not $^o.contains: 'Unhandled exception' }, :exitcode{.so},
 'using two `returns` traits does not cry about unhandled CONTROl exceptions';
@@ -147,7 +147,7 @@ is-run 'sub rt125181 returns Str returns Int {}',
     throws-like { 42.categorize    }, Exception, '.categorize()  on Any throws';
 }
 
-# https://github.com/rakudo/rakudo/issues/2110
+
 subtest 'numeric backslash errors do not get accompanied by confusing others' => {
     plan 3;
     my &err = {.contains: 'backslash sequence' & none 'quantifies nothing' }
@@ -156,7 +156,7 @@ subtest 'numeric backslash errors do not get accompanied by confusing others' =>
     is-run ｢Q:qq:cc/\1/｣,      :&err, :exitcode, ':qq:cc quoter';
 }
 
-# https://github.com/Raku/old-issue-tracker/issues/5739
+
 if $*DISTRO.is-win {
     skip ｢is-run() routine doesn't quite work right on Windows｣;
 }
@@ -165,25 +165,25 @@ else {
         'heredoc trimming warnings do not reference guts';
 }
 
-# https://github.com/rakudo/rakudo/issues/1813
+
 cmp-ok X::OutOfRange.new(
     :what<a range>, :got(0..3000), :range(1..3000)
 ).message.chars, '<', 150, 'X::OutOfRange does not stringify given Ranges';
 
-# https://github.com/rakudo/rakudo/issues/2320
+
 is-run 'class { method z { $^a } }', :err{ my @lines = $^msg.lines; @lines.grep({ !/'⏏'/ && .contains: '$^a' }) }, :exitcode{.so},
 'Use placeholder variables in a method should yield a useful error message';
 
-# https://github.com/rakudo/rakudo/issues/2385
+
 is-run 'role R2385 { multi method r2385(--> Str) { ... } }; class C2385 does R2385 { multi method r2385(--> Int) { 1 } }',
     'Role methods implemented by a class are checked for return type as well as for arguments',
     :err(/ 'Multi method' .+? 'must be implemented' /), :exitcode(so *);
 
-# https://github.com/rakudo/rakudo/issues/2921
+
 is-run 'bleah:(0)', err => { .contains: 'You can\'t adverb' }, :exitcode{.so},
 'Absurd adverbing results in a proper error message';
 
-# https://github.com/rakudo/rakudo/issues/4178
+
 is-run 'close $*OUT; say "hi"', err => { .contains: 'closed handle' }, :exitcode{.so},
 'An attempt to use a closed handle results in a proper error message';
 

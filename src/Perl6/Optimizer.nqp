@@ -2138,10 +2138,7 @@ my class SmartmatchOptimizer {
         }
 
         if nqp::isnull($result) {
-#?if !moar
-        $result := $op;
-#?endif
-#?if moar
+
         $result := QAST::Op.new(
             :op<dispatch>,
             QAST::SVal.new( :value<raku-smartmatch> ),
@@ -2149,7 +2146,7 @@ my class SmartmatchOptimizer {
             $rhs.orig-ast,
             QAST::IVal.new( :value($negated ?? -1 !! 1) )
         );
-#?endif
+
         }
 
         $result.annotate('smartmatch_optimized', 1);
@@ -2196,12 +2193,9 @@ my class SmartmatchOptimizer {
         # duplicate call to visit_children.
         if nqp::defined($sm_accepts) {
             my $lhs := Operand.new($op[0][1][1], $!optimizer, $!symbols, :name<LHS>);
-#?if !moar
-            my $rhs := Operand.new($sm_accepts[0][1], $!optimizer, $!symbols, :name<RHS>);
-#?endif
-#?if moar
+
             my $rhs := Operand.new($sm_accepts[2], $!optimizer, $!symbols, :name<RHS>);
-#?endif
+
             my $negated := $sm_accepts.ann('smartmatch_negated');
             my $boolified := $op[0][2].ann('smartmatch_boolified');
 
@@ -2218,38 +2212,10 @@ my class SmartmatchOptimizer {
             note("Post-typematch attempt result is ", $result.HOW.name($result)) if $!debug;
 
             if nqp::isnull($result) && ($sm_op := self.maybe_pair($lhs, $rhs, $sm_accepts, :$negated)) {
-#?if !moar
-                # When maybe_pair succeeds it means the RHS is certainly not a Regex. Hence we can remove the check and
-                # replace QAST::Stmts wrapper with the binding to sm_result_<n> local.
-                # Pull out the binding op and replace stmts; not needed in case of !~~
-                $op[0][2] := $op[0][2][0] unless $negated;
-#?endif
                 $op[0][2][1] := $sm_op;    # Replace the second binding argument with the optimized AST.
                 $result := $op; # No further optimizations are possible
             }
 
-#?if !moar
-            # If we know RHS type then we can possibly simplify the actual SM op withing `locallifetime` to plain
-            # .ACCEPTS(...).Bool unless RHS is or can be a Regex
-            if nqp::isnull($result)
-                && $boolified
-                && !$rhs.can-be($!symbols.Regex)
-            {
-                # Get binding into sm_result local
-                my $bind_ast := $op[0][2][0];
-                # Since RHS would only be used by ACCEPTS now, we can get rid of extra bind into sm_rhs local
-                $sm_accepts[0] := $rhs.orig-ast;
-                # We boolify unconditionally and this is what goes into sm_result. So, replace the second arg of bind
-                $bind_ast[1] := QAST::Op.new(
-                    :op<callmethod>,
-                    :name<Bool>,
-                    $sm_accepts
-                );
-                # Where previously we had stmts with ACCEPTS + Regex check, it will only bee boolified ACCEPTS now
-                $op[0][2] := $bind_ast;
-                $result := $op;
-            }
-#?endif
         }
 
         $result := $op unless nqp::defined($result);
@@ -3746,7 +3712,7 @@ class Perl6::Optimizer {
             }
         }
 
-#?if moar
+
         # If resolution didn't work out this way, and we're on the MoarVM
         # backend, use a dispatcher to speed it up. Give it the package and
         # name ahead of the invocant, as this makes the calling far more
@@ -3763,15 +3729,12 @@ class Perl6::Optimizer {
         $op.op('dispatch');
         $op.name(NQPMu);
         return 1;
-#?endif
+
     }
 
     method optimize_qual_method_call($op) {
         # Dispatch only available on MoarVM for now.
-#?if !moar
-        $op;
-#?endif
-#?if moar
+
         # We can only optimize if we have a compile-time-known name.
         my $name_node := $op[1];
         if nqp::istype($name_node, QAST::Want) && $name_node[1] eq 'Ss' {
@@ -3809,15 +3772,12 @@ class Perl6::Optimizer {
         ));
         $!block_var_stack.do('unregister_call');
         $op;
-#?endif
+
     }
 
     method optimize_maybe_method_call($op) {
         # Spesh plugins only available on MoarVM.
-#?if !moar
-        $op;
-#?endif
-#?if moar
+
         # We can only optimize if we have a compile-time-known name.
         my $name_node := $op[1];
         if nqp::istype($name_node, QAST::Want) && $name_node[1] eq 'Ss' {
@@ -3853,7 +3813,7 @@ class Perl6::Optimizer {
         ));
         $!block_var_stack.do('unregister_call');
         $op;
-#?endif
+
     }
 
     method generate_optimized_for($op,$callee,$start,$end,$step) {

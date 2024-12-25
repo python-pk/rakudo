@@ -82,34 +82,6 @@ role Perl6::Metamodel::MROBasedMethodDispatch {
     }
 
     method publish_method_cache($target) {
-#?if !moar
-        # Walk MRO and add methods to cache, unless another method
-        # lower in the class hierarchy "shadowed" it.
-        my %cache;
-        my @mro_reversed;
-        my $authable := 1;
-        for self.mro($target) {
-            @mro_reversed.unshift($_);
-        }
-        for @mro_reversed {
-            for nqp::hllize($_.HOW.method_table($_)) {
-                %cache{$_.key} := nqp::decont($_.value);
-            }
-            if nqp::can($_.HOW, 'is_composed') && !$_.HOW.is_composed($_) {
-                $authable := 0;
-            }
-        }
-
-        # Also add submethods.
-        for nqp::hllize(self.submethod_table($target)) {
-            %cache{$_.key} := nqp::decont($_.value);
-        }
-
-        nqp::setmethcache($target, %cache);
-        unless nqp::can(self, 'has_fallbacks') && self.has_fallbacks($target) {
-            nqp::setmethcacheauth($target, $authable);
-        }
-#?endif
     }
 
     method all_method_table($target) {
@@ -142,9 +114,6 @@ role Perl6::Metamodel::MROBasedMethodDispatch {
         nqp::scwbdisable;
         $!cached_all_method_table := nqp::null;
         nqp::scwbenable;
-#?if !moar
-        nqp::setmethcacheauth($target, 0);
-#?endif
     }
 }
 

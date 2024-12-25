@@ -8,7 +8,7 @@ BEGIN if $*VM.name eq 'jvm' {
 
 plan +my @protos := all-the-protos;
 
-# https://github.com/rakudo/rakudo/issues/1739
+
 for @protos -> \p {
     my $name := p.name // '<Unknown name>';
     without p.dispatchees {

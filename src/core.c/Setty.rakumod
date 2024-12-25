@@ -47,7 +47,7 @@ my role Setty does QuantHash {
              )
     }
 
-    # https://github.com/rakudo/rakudo/issues/5057
+    
     multi method deepmap(Setty:D: &mapper) {
         my $type  := self.WHAT;
         my $elems := $!elems;

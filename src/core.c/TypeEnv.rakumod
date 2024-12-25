@@ -41,12 +41,9 @@ my class TypeEnv { # declared in BOOTSTRAP
         my $ctx-repr := nqp::reprname(ctx);
         my Mu $ctx-hash;
         my Mu $which-object;
-#?if jvm
-        if nqp::reprname(ctx) eq 'ContextRef' {
-#?endif
-#?if !jvm
+
         if nqp::reprname(ctx) eq 'MVMContext' {
-#?endif
+
             $which-object := ctx;
             self!flatten-ctx(ctx, ($ctx-hash := nqp::hash()), :$boundary-by);
         }

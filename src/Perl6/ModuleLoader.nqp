@@ -155,12 +155,9 @@ class Perl6::ModuleLoader does Perl6::ModuleLoaderVMConfig {
             $stash_type := $config.stash_type unless nqp::isnull($config);
         }
 
-#?if !moar
-        if !nqp::isnull($stash_type) && nqp::istype($target, $stash_type) {
-#?endif
-#?if moar
+
         if nqp::istype($target, $stash_type) {
-#?endif
+
             # merge-symbols will loop back on this method again, but would
             # lock-protect itself first.
             $target.merge-symbols($source);

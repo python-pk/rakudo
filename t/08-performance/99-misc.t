@@ -4,7 +4,7 @@ my $skip = %*ENV<RAKUDO_RUN_TIMING_TESTS> ?? 0 !! 3;
 
 plan 4 - $skip;
 
-# https://github.com/rakudo/rakudo/issues/1488
+
 {
     my class Foo {
         method Stringy {
@@ -30,7 +30,7 @@ unless $skip {
         "was native .sum $took2 at least 10x as fast as $took1 ({$took1/$took2}x)";
 }
 
-unless $skip { # https://github.com/rakudo/rakudo/issues/1740
+unless $skip { 
     my $t-plain = { (^∞).grep(*.is-prime)[1000];       now - ENTER now }();
     my $t-hyper = { (^∞).hyper.grep(*.is-prime)[1000]; now - ENTER now }();
     cmp-ok $t-hyper, '≤', $t-plain*10,

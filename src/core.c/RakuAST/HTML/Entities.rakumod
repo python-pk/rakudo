@@ -1,13 +1,10 @@
 my class RakuAST::HTML::Entities {
 
-#?if moar
-    my constant $entity2ord = nqp::hash(
-#?endif
-#?if js
-    my $entity2ord := nqp::hash(
-#?endif
 
-#?if !jvm
+    my constant $entity2ord = nqp::hash(
+
+
+
 
 #- start of generated part of HTML entities ------------------------------------
 #- Generated on 2023-04-16T18:26:45+02:00 by tools/build/makeHTML-ENTITIES.raku
@@ -2159,11 +2156,8 @@ my class RakuAST::HTML::Entities {
         }
     }
 
-#?endif
 
-#?if jvm
-    method parse(Str:D: --> Nil) { }
-#?endif
+
 }
 
 # vim: expandtab shiftwidth=4

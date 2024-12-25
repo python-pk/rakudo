@@ -5,7 +5,7 @@ my role Mixy does Baggy  {
     multi method hash(Mixy:D: --> Hash:D) { self!HASHIFY(Real) }
     multi method Hash(Mixy:D: --> Hash:D) { self!HASHIFY(Any) }
 
-    # https://github.com/rakudo/rakudo/issues/5057
+    
     multi method deepmap(Mixy:D: &mapper) {
         my $type  := self.WHAT;
         my $elems := nqp::getattr(self,self.WHAT,'$!elems');

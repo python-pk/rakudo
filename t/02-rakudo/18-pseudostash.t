@@ -24,7 +24,7 @@ plan 4;
     }
 }
 
-# https://github.com/rakudo/rakudo/issues/1835
+
 {
     my $a;
     $a = PseudoStash.new for ^9999;

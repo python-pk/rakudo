@@ -294,9 +294,9 @@ my constant e   = 2.71828_18284_59045_235e0;
 
 my constant π := pi;
 my constant τ := tau;
-#?if !jvm
+
 my constant 𝑒 := e;
-#?endif
+
 
 multi sub prefix:<++>(Num:D $a is rw) {
     $a = nqp::p6box_n(nqp::add_n(nqp::unbox_n($a), 1e0))

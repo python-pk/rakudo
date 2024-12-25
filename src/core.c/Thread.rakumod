@@ -12,22 +12,14 @@ my class Thread {
     # Thread's (user-defined) name.
     has Str $.name;
 
-#?if !jvm
+
     my atomicint $started;
     my atomicint $aborted;
     my atomicint $completed;
     my atomicint $joined;
     my atomicint $yields;
     my atomicint $highest_id;
-#?endif
-#?if jvm
-    my int $started;
-    my int $aborted;
-    my int $completed;
-    my int $joined;
-    my int $yields;
-    my int $highest_id;
-#?endif
+
 
     submethod BUILD(
              :&code!,
@@ -53,39 +45,30 @@ my class Thread {
 
         my $entry := anon sub THREAD-ENTRY() {
             my $*THREAD = self;
-#?if !jvm
+
             nqp::setthreadname(nqp::threadid($!vm_thread) ~ ": " ~ $!name);
-#?endif
+
             CONTROL {
                 default {
-#?if !jvm
+
                     ++⚛$aborted;
-#?endif
-#?if jvm
-                    ++$aborted;
-#?endif
+
                     my Mu $vm-ex := nqp::getattr(nqp::decont($_), Exception, '$!ex');
                     nqp::getcomp('Raku').handle-control($vm-ex);
                 }
             }
             my $*STACK-ID = Rakudo::Internals.NEXT-ID;
             code();
-#?if !jvm
+
             ++⚛$completed;
-#?endif
-#?if jvm
-            ++$completed;
-#?endif
+
         }
         $!vm_thread := nqp::newthread(nqp::getattr($entry, Code, '$!do'),
             $!app_lifetime ?? 1 !! 0);
 
-#?if !jvm
+
             $highest_id ⚛= nqp::threadid($!vm_thread);
-#?endif
-#?if jvm
-            $highest_id = nqp::threadid($!vm_thread);
-#?endif
+
     }
 
     method start(Thread:U: &code, *%adverbs) {
@@ -93,12 +76,9 @@ my class Thread {
     }
 
     method run(Thread:D:) {
-#?if !jvm
+
         ++⚛$started;
-#?endif
-#?if jvm
-        ++$started;
-#?endif
+
         nqp::threadrun($!vm_thread);
         self
     }
@@ -109,12 +89,9 @@ my class Thread {
 
     method finish(Thread:D:) {
         nqp::threadjoin($!vm_thread);
-#?if !jvm
+
         ++⚛$joined;
-#?endif
-#?if jvm
-        ++$joined;
-#?endif
+
         self
     }
 
@@ -134,12 +111,9 @@ my class Thread {
     }
 
     method yield(Thread:U: --> Nil) {
-#?if !jvm
+
         ++⚛$yields;
-#?endif
-#?if jvm
-        ++$yields;
-#?endif
+
         nqp::threadyield();
     }
 
